@@ -49,6 +49,11 @@ function Form<T extends FieldValues>({
                     key === "role" ? "admin , teacher or student" : key
                   }
                 />
+                {form.formState.errors[key] && (
+                  <span className="label text-red-500">
+                    {form.formState.errors[key]?.message as string}
+                  </span>
+                )}
               </fieldset>
             ))}
           </div>
