@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import localFont from "next/font/local";
-
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
+import "./custom.css";
 export const metadata: Metadata = {
   title: "University Dashboard",
   description: "University Dashboard Management System",
@@ -28,7 +30,20 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${libreBaskerville.className} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body>
+        <main
+          className="min-h-screen overlay"
+          style={{
+            backgroundImage: "url(/bg.jpg)",
+            objectFit: "cover",
+            backgroundSize: "cover",
+          }}
+        >
+          <Navbar />
+          <div>{children}</div>
+          <Footer />
+        </main>
+      </body>
     </html>
   );
 }

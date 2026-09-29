@@ -1,9 +1,10 @@
+"use client";
 import { ReactNode } from "react";
 
 type Props = { children: ReactNode };
 
 function layout({ children }: Props) {
-  return <main>{children}</main>;
+  return <div>{children}</div>;
 }
 
 export default layout;
