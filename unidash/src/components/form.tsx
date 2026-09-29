@@ -35,11 +35,11 @@ function Form<T extends FieldValues>({
         <h1 className="text-2xl font-semibold">{type}</h1>
         <p className="text-muted-foreground">{description}</p>
       </div>
-      <div className="py-4">
+      <div className="py-4 flex flex-col items-center justify-center">
         <form onSubmit={form.handleSubmit(handleSubmit)}>
-          <div>
+          <div className="flex flex-col justify-center items-center gap-2 pl-15 pb-7">
             {Object.keys(defaultValues).map((key) => (
-              <fieldset key={key} className="fieldset">
+              <fieldset key={key} className="fieldset w-96">
                 <legend className="fieldset-legend capitalize ">{key}</legend>
                 <input
                   {...form.register(key)}
@@ -51,6 +51,12 @@ function Form<T extends FieldValues>({
                 />
               </fieldset>
             ))}
+          </div>
+
+          <div className="flex justify-center">
+            <button type="submit" className="w-80 btn btn-info btn-outline">
+              Submit
+            </button>
           </div>
         </form>
       </div>
