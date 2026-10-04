@@ -68,7 +68,7 @@ function RegistrationPage() {
         <div className="flex flex-col items-center gap-2">
           <h1 className="text-2xl font-semibold">Registration</h1>
           <p className="text-muted-foreground">
-            Create a new acciunt to ger started.
+            Create a new account to get started.
           </p>
         </div>
         <div className="py-4 flex flex-col items-center justify-center">
@@ -76,7 +76,7 @@ function RegistrationPage() {
             <div className="flex flex-col justify-center items-center gap-2 pl-15 pb-7">
               <fieldset className="fieldset w-96">
                 <legend className="fieldset-legend capitalize ">
-                  firstName
+                  First Name
                 </legend>
                 <input
                   name="firstName"
@@ -92,7 +92,7 @@ function RegistrationPage() {
               </fieldset>
               <fieldset className="fieldset w-96">
                 <legend className="fieldset-legend capitalize ">
-                  lastName
+                  last Name
                 </legend>
                 <input
                   name="lastName"

@@ -34,8 +34,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <main
           className="min-h-screen overlay"
           style={{
-            backgroundImage: "url(/bg.jpg)",
+            backgroundImage: "url(/bg-2.jpg)",
             objectFit: "cover",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center center",
             backgroundSize: "cover",
           }}
         >
