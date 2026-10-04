@@ -1,3 +1,4 @@
+"use client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   DefaultValues,
@@ -22,12 +23,19 @@ function Form<T extends FieldValues>({
   defaultValues,
   onSubmit,
 }: Props<T>) {
-  const form = useForm({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
     resolver: zodResolver(schema as ZodType<T, any, any>),
     defaultValues: defaultValues as DefaultValues<T>,
   });
-  const handleSubmit: SubmitHandler<T> = async (data) => {
+  const submitHandler: SubmitHandler<T> = async (data) => {
     console.log(data);
+  };
+  const errorHandler = (errors: any) => {
+    console.log("Validation errors:", errors);
   };
   return (
     <div className="glass-morphism max-w-md w-3xl p-5 flex flex-col gap-4">
@@ -36,22 +44,22 @@ function Form<T extends FieldValues>({
         <p className="text-muted-foreground">{description}</p>
       </div>
       <div className="py-4 flex flex-col items-center justify-center">
-        <form onSubmit={form.handleSubmit(handleSubmit)}>
+        <form onSubmit={handleSubmit(submitHandler, errorHandler)}>
           <div className="flex flex-col justify-center items-center gap-2 pl-15 pb-7">
             {Object.keys(defaultValues).map((key) => (
               <fieldset key={key} className="fieldset w-96">
                 <legend className="fieldset-legend capitalize ">{key}</legend>
                 <input
-                  {...form.register(key)}
-                  type={key}
+                  {...register(key)}
+                  type="text"
                   className="input"
                   placeholder={
                     key === "role" ? "admin , teacher or student" : key
                   }
                 />
-                {form.formState.errors[key] && (
+                {errors[key] && (
                   <span className="label text-red-500">
-                    {form.formState.errors[key]?.message as string}
+                    {String(errors[key]?.message)}
                   </span>
                 )}
               </fieldset>

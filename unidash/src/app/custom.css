@@ -1,3 +1,10 @@
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-group(root) {
+  animation-duration: 1s;
+}
 .overlay {
   border-image: linear-gradient(hsl(240 100% 20% / 0.6), hsl(0 100% 20% / 0.6))
     fill 1;

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
+    "better-auth": "^1.7.7",
     "daisyui": "^5.7.46",
     "next": "16.3.6",
     "react": "19.2.8",
