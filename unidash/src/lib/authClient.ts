@@ -1,8 +1,9 @@
 import { inferAdditionalFields } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
+import { env } from "./validate";
 
 export const authClient = createAuthClient({
-  baseURL: `https://b7a6-fieser-management.onrender.com/api/auth`,
+  baseURL: `${env.NEXT_PUBLIC_BACKEND_URL!}/api/auth`,
   plugins: [
     inferAdditionalFields({
       user: {

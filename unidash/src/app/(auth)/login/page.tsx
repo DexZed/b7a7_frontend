@@ -34,10 +34,23 @@ function LoginPage() {
         password: data.password,
       },
       {
-        onSuccess: () => {
+        onSuccess: (ctx) => {
           showSuccessAlert("Login", "You logged in successfully");
-          // TODO: Conditional Routing based on role
-          router.push("/");
+          const role = ctx.data?.user?.role;
+          switch (role) {
+            case "admin":
+              router.push("/admin");
+              break;
+            case "teacher":
+              router.push("/teacher");
+              break;
+            case "student":
+              router.push("/student");
+              break;
+            default:
+              router.push("/");
+              break;
+          }
         },
         onError: (error) => {
           showErrorAlert("Error logging in", String(error?.error?.message));

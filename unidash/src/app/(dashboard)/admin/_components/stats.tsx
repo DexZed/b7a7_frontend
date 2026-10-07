@@ -5,20 +5,20 @@ import { redirect } from "next/navigation";
 import { useState, useEffect } from "react";
 import { DashboardStats } from "@/lib/types";
 function AdminStats() {
-  const user = useSession();
+  const { data: session, isPending } = useSession();
+  console.log(session);
   const [stats, setStats] = useState<DashboardStats>();
   useEffect(() => {
+    if (isPending || !session) return;
+
+    const token = session.session.token;
     const fetchStats = async () => {
-      const stats = await getDashboardStats(
-        user?.data?.session.token as string,
-      );
-      if (!stats.success) {
-        redirect("/login");
-      }
+      const stats = await getDashboardStats(token);
       setStats(stats.data);
     };
     fetchStats();
-  }, [user]);
+  }, [session, isPending]);
+
   if (!stats) {
     return (
       <div className="flex w-full justify-around my-4">
@@ -30,6 +30,7 @@ function AdminStats() {
       </div>
     );
   }
+
   return (
     <>
       <div className="flex w-full justify-around my-4">
