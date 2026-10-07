@@ -1,24 +1,7 @@
-"use client";
-import { signOut, useSession } from "@/lib/authClient";
 import Link from "next/link";
+import UserAvatarNav from "./userAvatar";
 
-type Props = {};
-
-function Navbar({}: Props) {
-  const user = useSession();
-  function getInitials(name: string | undefined) {
-    let initials;
-    if (name?.split(" ").length === undefined) {
-      initials = "U";
-    } else if (name?.split(" ").length! > 1) {
-      initials =
-        name?.split(" ")[0][0] +
-        name?.split(" ")[name?.split(" ").length - 1][0]!;
-    } else {
-      initials = name?.[0];
-    }
-    return initials?.toUpperCase();
-  }
+function Navbar() {
   const links = (
     <>
       <li>
@@ -63,32 +46,7 @@ function Navbar({}: Props) {
         <ul className="menu menu-horizontal px-1">{links}</ul>
       </div>
       <div className="navbar-end">
-        {user.data ? (
-          <>
-            <button
-              className="btn btn-outline btn-ghost"
-              onClick={() => signOut()}
-            >
-              Logout
-            </button>
-            <div className="avatar avatar-placeholder">
-              <div className="bg-neutral text-neutral-content w-8 rounded-full">
-                <span className="text-sm">
-                  {getInitials(user.data?.user.name!)}
-                </span>
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
-            <Link href={"/login"} className="btn btn-outline btn-ghost">
-              Login
-            </Link>
-            <Link href={"/registration"} className="btn btn-outline btn-ghost">
-              Sign Up
-            </Link>
-          </>
-        )}
+        <UserAvatarNav />
       </div>
     </div>
   );

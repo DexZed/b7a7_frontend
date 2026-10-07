@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import localFont from "next/font/local";
-import Navbar from "@/components/navbar";
+
 import Footer from "@/components/footer";
 import "./custom.css";
 export const metadata: Metadata = {
@@ -41,7 +41,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             backgroundSize: "cover",
           }}
         >
-          <Navbar />
           <div>{children}</div>
           <Footer />
         </main>
