@@ -7,7 +7,7 @@ export async function getDashboardStats(
   token: string,
 ): Promise<Response<DashboardStats>> {
   const result = await apiFetch<Response<DashboardStats>>(
-    "/stats/overview",
+    "/api/stats/overview",
     token,
   );
 
