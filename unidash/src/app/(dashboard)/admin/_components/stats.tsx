@@ -1,12 +1,13 @@
 "use client";
 import { getDashboardStats } from "@/data access/adminData";
 import { useSession } from "@/lib/authClient";
-import { redirect } from "next/navigation";
 import { useState, useEffect } from "react";
 import { DashboardStats } from "@/lib/types";
+import { SkeletonCards } from "@/components/skeletons";
+
 function AdminStats() {
   const { data: session, isPending } = useSession();
-  console.log(session);
+
   const [stats, setStats] = useState<DashboardStats>();
   useEffect(() => {
     if (isPending || !session) return;
@@ -21,19 +22,17 @@ function AdminStats() {
 
   if (!stats) {
     return (
-      <div className="flex w-full justify-around my-4">
-        <div className="card glass-morphism">
-          <div className="card-body">
-            <h2 className="card-title">Loading...</h2>
-          </div>
+      <>
+        <div className="flex flex-wrap w-full justify-around my-4 gap-2">
+          <SkeletonCards count={8} width={"w-40"} height={"h-40"} />
         </div>
-      </div>
+      </>
     );
   }
 
   return (
     <>
-      <div className="flex flex-wrap w-full justify-around my-4 gap-2">
+      <div className="flex flex-wrap gap-5 justify-around items-center my-4">
         {Object.keys(stats).map((key) => (
           <div key={key} className="">
             <div className="card glass-morphism w-40">

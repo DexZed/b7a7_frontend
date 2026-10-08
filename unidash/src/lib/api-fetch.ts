@@ -6,15 +6,17 @@ export async function apiFetch<T>(
   token: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const response = await fetch(`${env.NEXT_PUBLIC_BACKEND_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      ...options.headers,
+  const response = await fetch(
+    `https://b7a6-fieser-management.onrender.com${endpoint}`,
+    {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        ...options.headers,
+      },
     },
-  });
-  console.log(response);
+  );
   const result = await response.json();
 
   if (!response.ok) {

@@ -1,41 +1,80 @@
 "use client";
 import {
-  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
-  createHorizontalChart,
 } from "recharts";
-import {
-  generateMockData,
-  MockDataType,
-  RechartsDevtools,
-} from "@recharts/devtools";
+import { generateMockData, RechartsDevtools } from "@recharts/devtools";
+import { useSession } from "@/lib/authClient";
+import { useEffect, useState } from "react";
+import { ChartData } from "@/lib/types";
+import { getChartData } from "@/data access/adminData";
+import { SkeletonCards, SkeletonContent } from "@/components/skeletons";
 
-const data: Array<MockDataType> = generateMockData(6, 26213);
+const data = generateMockData(6, 823);
+/**
+ *
+ * data shape = [
+ * {
+ *  label: string,
+ *  x: number,
+ *  y: number,
+ *  z: number
+ * },
+ * ]
+ */
 
-const Typed = createHorizontalChart<MockDataType, string, number>()({
-  XAxis,
-  YAxis,
-  Tooltip,
-  Line,
-});
+const AdminChart = () => {
+  const { data: session, isPending } = useSession();
+  const [chartData, setChartData] = useState<ChartData>();
 
-function AdminCharts() {
+  useEffect(() => {
+    if (isPending || !session) return;
+
+    const token = session.session.token;
+    const fetchChartData = async () => {
+      const stats = await getChartData(token);
+      setChartData(stats.data);
+    };
+    fetchChartData();
+  }, [session, isPending]);
+
+  if (isPending) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <SkeletonCards width={"w-full"} height={"h-96"} count={3} />
+      </div>
+    );
+  }
+  const usersByRoleData = chartData?.usersByRole.map((role) => ({
+    label: role.role.toUpperCase(),
+    Count: role.total,
+  }));
+  const subByDeptData = chartData?.subjectsByDepartment.map((dept) => ({
+    label: dept.departmentName.toUpperCase(),
+    Count: dept.totalSubjects,
+  }));
+  const classesBySubjectData = chartData?.classesBySubject.map((sub) => {
+    return {
+      label: sub.subjectName.toUpperCase(),
+      Count: sub.totalClasses,
+    };
+  });
   return (
-    <>
-      <Typed.LineChart
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 glass-morphism p-4 my-5">
+      <BarChart
         style={{
           width: "100%",
           maxWidth: "700px",
-          height: "100%",
           maxHeight: "70vh",
           aspectRatio: 1.618,
         }}
         responsive
-        data={data}
+        data={usersByRoleData}
         margin={{
           top: 5,
           right: 0,
@@ -44,16 +83,68 @@ function AdminCharts() {
         }}
       >
         <CartesianGrid />
-        <Typed.XAxis dataKey="label" />
-        <Typed.YAxis width="auto" />
+        <XAxis dataKey="label" />
+        <YAxis width="auto" />
         <Tooltip />
         <Legend />
-        <Typed.Line dataKey="x" />
-        <Typed.Line dataKey="y" />
-        <RechartsDevtools />
-      </Typed.LineChart>
-    </>
-  );
-}
+        <Bar dataKey="Count" radius={[10, 10, 0, 0]} />
 
-export default AdminCharts;
+        <RechartsDevtools />
+      </BarChart>
+
+      <BarChart
+        style={{
+          width: "100%",
+          maxWidth: "700px",
+          maxHeight: "70vh",
+          aspectRatio: 1.618,
+        }}
+        responsive
+        data={subByDeptData}
+        margin={{
+          top: 5,
+          right: 0,
+          left: 0,
+          bottom: 5,
+        }}
+      >
+        <CartesianGrid />
+        <XAxis dataKey="label" />
+        <YAxis width="auto" />
+        <Tooltip />
+        <Legend />
+        <Bar dataKey="Count" radius={[10, 10, 0, 0]} />
+
+        <RechartsDevtools />
+      </BarChart>
+
+      <BarChart
+        style={{
+          width: "100%",
+          maxWidth: "700px",
+          maxHeight: "70vh",
+          aspectRatio: 1.618,
+        }}
+        responsive
+        data={classesBySubjectData}
+        margin={{
+          top: 5,
+          right: 0,
+          left: 0,
+          bottom: 5,
+        }}
+      >
+        <CartesianGrid />
+        <XAxis dataKey="label" />
+        <YAxis width="auto" />
+        <Tooltip />
+        <Legend />
+        <Bar dataKey="Count" radius={[10, 10, 0, 0]} />
+
+        <RechartsDevtools />
+      </BarChart>
+    </div>
+  );
+};
+
+export default AdminChart;
