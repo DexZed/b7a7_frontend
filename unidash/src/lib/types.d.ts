@@ -36,3 +36,29 @@ export interface ClassesBySubject {
   subjectName: string;
   totalClasses: number;
 }
+
+export interface LatestData {
+  latestClasses: LatestClass[];
+  latestTeachers: LatestTeacher[];
+}
+
+export interface LatestClass {
+  id: number;
+  subjectId: number;
+  teacherId: string;
+  description: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface LatestTeacher {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  image: any;
+  createdAt: string;
+  updatedAt: string;
+  role: string;
+  imageCldPubId: any;
+}

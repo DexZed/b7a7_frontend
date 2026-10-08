@@ -39,13 +39,13 @@ function LoginPage() {
           const role = ctx.data?.user?.role;
           switch (role) {
             case "admin":
-              router.push("/admin");
+              router.push("/admin/landing");
               break;
             case "teacher":
-              router.push("/teacher");
+              router.push("/teacher/landing");
               break;
             case "student":
-              router.push("/student");
+              router.push("/student/landing");
               break;
             default:
               router.push("/");

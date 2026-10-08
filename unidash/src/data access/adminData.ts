@@ -1,5 +1,5 @@
 "use server";
-import { ChartData, Response } from "@/lib/types";
+import { ChartData, LatestData, Response } from "@/lib/types";
 import { DashboardStats } from "@/lib/types";
 import { apiFetch } from "@/lib/api-fetch";
 
@@ -34,6 +34,14 @@ export async function getChartData(
 ): Promise<Response<ChartData>> {
   const result = await apiFetch<Response<ChartData>>(
     "/api/stats/charts",
+    token,
+  );
+
+  return result;
+}
+export async function getlatest(token: string): Promise<Response<LatestData>> {
+  const result = await apiFetch<Response<LatestData>>(
+    "/api/stats/latest",
     token,
   );
 
