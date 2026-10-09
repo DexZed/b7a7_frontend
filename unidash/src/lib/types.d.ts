@@ -91,4 +91,5 @@ export interface Department {
   description: string;
   createdAt: string;
   updatedAt: string;
+  totalSubjects: number;
 }

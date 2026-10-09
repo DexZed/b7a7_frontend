@@ -1,7 +1,14 @@
 "use client";
 import UserAvatarNav, { DrawerAvatar } from "@/components/userAvatar";
 import { useSession } from "@/lib/authClient";
-import { House, Users } from "lucide-react";
+import {
+  BookCopy,
+  GraduationCap,
+  House,
+  ScrollText,
+  University,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { ReactNode } from "react";
 
@@ -32,12 +39,22 @@ function layout({ children }: Props) {
         {
           name: "landing",
           href: "/teacher/landing",
-          icon: null,
+          icon: <House />,
         },
         {
-          name: "placeholder",
-          href: "#",
-          icon: null,
+          name: "departments",
+          href: "/teacher/departments",
+          icon: <University />,
+        },
+        {
+          name: "classes",
+          href: "/teacher/classes",
+          icon: <GraduationCap />,
+        },
+        {
+          name: "subjects",
+          href: "/teacher/subjects",
+          icon: <BookCopy />,
         },
       ];
       break;
