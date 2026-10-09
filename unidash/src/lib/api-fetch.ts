@@ -20,7 +20,7 @@ export async function apiFetch<T>(
   const result = await response.json();
 
   if (!response.ok) {
-    throw new Error(result?.message || "API request failed");
+    console.error("Error", result);
   }
 
   return result;

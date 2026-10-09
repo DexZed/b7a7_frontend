@@ -38,11 +38,11 @@ export interface ClassesBySubject {
 }
 
 export interface LatestData {
-  latestClasses: LatestClass[];
-  latestTeachers: LatestTeacher[];
+  latestClasses: Class[];
+  latestTeachers: User[];
 }
 
-export interface LatestClass {
+export interface Class {
   id: number;
   subjectId: number;
   teacherId: string;
@@ -51,7 +51,7 @@ export interface LatestClass {
   createdAt: string;
 }
 
-export interface LatestTeacher {
+export interface User {
   id: string;
   name: string;
   email: string;
@@ -61,4 +61,14 @@ export interface LatestTeacher {
   updatedAt: string;
   role: string;
   imageCldPubId: any;
+}
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+export interface PaginatedResponse<T> extends Response<T> {
+  data: T[];
+  pagination: Pagination;
 }

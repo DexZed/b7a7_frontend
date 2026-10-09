@@ -56,3 +56,17 @@ export function showConfirmationAlert(
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+export function getInitials(name: string | undefined) {
+  let initials;
+  if (name?.split(" ").length === undefined) {
+    initials = "U";
+  } else if (name?.split(" ").length! > 1) {
+    initials =
+      name?.split(" ")[0][0] +
+      name?.split(" ")[name?.split(" ").length - 1][0]!;
+  } else {
+    initials = name?.[0];
+  }
+  return initials?.toUpperCase();
+}

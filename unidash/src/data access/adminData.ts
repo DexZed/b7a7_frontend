@@ -1,5 +1,11 @@
 "use server";
-import { ChartData, LatestData, Response } from "@/lib/types";
+import {
+  ChartData,
+  LatestData,
+  PaginatedResponse,
+  Response,
+  User,
+} from "@/lib/types";
 import { DashboardStats } from "@/lib/types";
 import { apiFetch } from "@/lib/api-fetch";
 
@@ -45,5 +51,24 @@ export async function getlatest(token: string): Promise<Response<LatestData>> {
     token,
   );
 
+  return result;
+}
+
+export async function getAllUsers(
+  token: string,
+  queryObj?: { page?: number; limit?: number; search?: string; role?: string },
+): Promise<PaginatedResponse<User>> {
+  const dynamicQueryString = new URLSearchParams();
+  if (queryObj) {
+    const { page, limit, search, role } = queryObj;
+    if (page) dynamicQueryString.append("page", page.toString());
+    if (limit) dynamicQueryString.append("limit", limit.toString());
+    if (search) dynamicQueryString.append("search", search);
+    if (role) dynamicQueryString.append("role", role);
+  }
+  const queryString = dynamicQueryString.toString();
+  const endpoint = queryString ? `/api/users?${queryString}` : `/api/users`;
+
+  const result = await apiFetch<PaginatedResponse<User>>(endpoint, token);
   return result;
 }
