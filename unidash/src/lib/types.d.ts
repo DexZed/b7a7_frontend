@@ -93,3 +93,23 @@ export interface Department {
   updatedAt: string;
   totalSubjects: number;
 }
+
+export interface ClassesFullSchema {
+  id: number;
+  subjectId: number;
+  teacherId: string;
+  inviteCode: string;
+  name: string;
+  price: string;
+  currency: string;
+  bannerCldPubId: string | null;
+  bannerUrl: string | null;
+  capacity: number;
+  description: string;
+  status: "active" | "inactive";
+  createdAt: string;
+  updatedAt: string;
+  subject: Subject;
+  teacher: User;
+  schedules: any | null;
+}

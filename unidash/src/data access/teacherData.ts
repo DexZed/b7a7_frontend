@@ -1,6 +1,14 @@
 "use server";
 import { apiFetch } from "@/lib/api-fetch";
-import { Department, PaginatedResponse } from "@/lib/types";
+import {
+  Class,
+  ClassesFullSchema,
+  Department,
+  PaginatedResponse,
+  Response,
+  Subject,
+  User,
+} from "@/lib/types";
 import { revalidatePath } from "next/cache";
 
 export async function getAllDepartments(
@@ -33,4 +41,33 @@ export async function createDepartment(
     body: JSON.stringify(department),
   });
   revalidatePath("/teacher/departments");
+}
+
+export async function getDepartmentSubjectsById(
+  token: string,
+  id: string,
+): Promise<Response<Subject[]>> {
+  const endpoint = `/api/departments/${id}/subjects`;
+
+  const result = await apiFetch<Response<Subject[]>>(endpoint, token);
+  return result;
+}
+
+export async function getDepartmentClassesById(
+  token: string,
+  id: string,
+): Promise<Response<ClassesFullSchema[]>> {
+  const endpoint = `/api/departments/${id}/classes`;
+
+  const result = await apiFetch<Response<ClassesFullSchema[]>>(endpoint, token);
+  return result;
+}
+export async function getDepartmentUsersById(
+  token: string,
+  id: string,
+): Promise<Response<User[]>> {
+  const endpoint = `/api/departments/${id}/users?role=teacher`;
+
+  const result = await apiFetch<Response<User[]>>(endpoint, token);
+  return result;
 }

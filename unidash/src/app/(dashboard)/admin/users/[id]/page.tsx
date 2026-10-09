@@ -9,7 +9,6 @@ import {
 } from "@/data access/adminData";
 import { useSession } from "@/lib/authClient";
 import { Department, Subject } from "@/lib/types";
-import { BookCopy, ListSortDescending, Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -20,7 +19,6 @@ export default function UserDetailsPage() {
   const { data: session } = useSession();
   const token = session?.session?.token;
 
-  // Separate query and pagination states for Departments and Subjects
   const [deptQuery, setDeptQuery] = useState({ page: 1, limit: 10 });
   const [deptPagination, setDeptPagination] = useState({
     page: 1,

@@ -7,6 +7,8 @@ import SkeletonBanner, { SkeletonContent } from "@/components/skeletons";
 import { Department } from "@/lib/types";
 import { getAllDepartments } from "@/data access/teacherData";
 import DepartmentForm from "./_components/newDepartment";
+import Link from "next/link";
+import { Info } from "lucide-react";
 
 function DepartmentsPage() {
   const { data: session } = useSession();
@@ -173,6 +175,7 @@ function DepartmentsPage() {
                 <th>Created At</th>
                 <th>Updated At</th>
                 <th>Total Subjects</th>
+                <th>Details</th>
               </tr>
             </thead>
             <tbody>
@@ -203,6 +206,14 @@ function DepartmentsPage() {
                           : "Not Updated Yet"}
                       </td>
                       <td className="text-center">{d.totalSubjects}</td>
+                      <td>
+                        <Link
+                          className="btn btn-ghost btn-outline"
+                          href={`/teacher/departments/${d.id}`}
+                        >
+                          <Info />
+                        </Link>
+                      </td>
                     </tr>
                   );
                 })
