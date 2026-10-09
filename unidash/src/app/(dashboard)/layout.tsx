@@ -1,7 +1,7 @@
 "use client";
 import UserAvatarNav, { DrawerAvatar } from "@/components/userAvatar";
 import { useSession } from "@/lib/authClient";
-import { House, Layers2, Users } from "lucide-react";
+import { House, Users } from "lucide-react";
 import Link from "next/link";
 import { ReactNode } from "react";
 
@@ -24,11 +24,6 @@ function layout({ children }: Props) {
           name: "users",
           href: "/admin/users",
           icon: <Users />,
-        },
-        {
-          name: "category",
-          href: "/admin/category",
-          icon: <Layers2 />,
         },
       ];
       break;

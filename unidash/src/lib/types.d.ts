@@ -72,3 +72,23 @@ export interface PaginatedResponse<T> extends Response<T> {
   data: T[];
   pagination: Pagination;
 }
+
+export interface Subject {
+  id: number;
+  departmentId: number;
+  name: string;
+  code: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  department: Department;
+}
+
+export interface Department {
+  id: number;
+  code: string;
+  name: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}

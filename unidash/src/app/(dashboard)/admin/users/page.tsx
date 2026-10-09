@@ -3,6 +3,8 @@ import { useSession } from "@/lib/authClient";
 import { getAllUsers } from "@/data access/adminData";
 import { useEffect, useState } from "react";
 import { User } from "@/lib/types";
+import { Info } from "lucide-react";
+import Link from "next/link";
 
 function AllUsers() {
   const { data: session } = useSession();
@@ -127,6 +129,7 @@ function AllUsers() {
                   <th>Email</th>
                   <th>Joined</th>
                   <th>Updated</th>
+                  <th>Details</th>
                 </tr>
               </thead>
               <tbody>
@@ -151,6 +154,14 @@ function AllUsers() {
                           {u.updatedAt
                             ? new Date(u.updatedAt).toLocaleDateString()
                             : "Not Updated Yet"}
+                        </td>
+                        <td>
+                          <Link
+                            className="btn btn-ghost btn-outline"
+                            href={`/admin/users/${u.id}`}
+                          >
+                            <Info />
+                          </Link>
                         </td>
                       </tr>
                     );

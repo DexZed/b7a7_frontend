@@ -1,9 +1,11 @@
 "use server";
 import {
   ChartData,
+  Department,
   LatestData,
   PaginatedResponse,
   Response,
+  Subject,
   User,
 } from "@/lib/types";
 import { DashboardStats } from "@/lib/types";
@@ -70,5 +72,45 @@ export async function getAllUsers(
   const endpoint = queryString ? `/api/users?${queryString}` : `/api/users`;
 
   const result = await apiFetch<PaginatedResponse<User>>(endpoint, token);
+  return result;
+}
+
+export async function getUserDepartmentsById(
+  token: string,
+  id: string,
+  queryObj?: { page?: number; limit?: number },
+): Promise<PaginatedResponse<Department>> {
+  const dynamicQueryString = new URLSearchParams();
+  if (queryObj) {
+    const { page, limit } = queryObj;
+    if (page) dynamicQueryString.append("page", page.toString());
+    if (limit) dynamicQueryString.append("limit", limit.toString());
+  }
+  const queryString = dynamicQueryString.toString();
+  const endpoint = queryString
+    ? `/api/users/${id}/departments?${queryString}`
+    : `/api/users/${id}/departments`;
+
+  const result = await apiFetch<PaginatedResponse<Department>>(endpoint, token);
+  return result;
+}
+
+export async function getUserSubjectsById(
+  token: string,
+  id: string,
+  queryObj?: { page?: number; limit?: number },
+): Promise<PaginatedResponse<Subject>> {
+  const dynamicQueryString = new URLSearchParams();
+  if (queryObj) {
+    const { page, limit } = queryObj;
+    if (page) dynamicQueryString.append("page", page.toString());
+    if (limit) dynamicQueryString.append("limit", limit.toString());
+  }
+  const queryString = dynamicQueryString.toString();
+  const endpoint = queryString
+    ? `/api/users/${id}/subjects?${queryString}`
+    : `/api/users/${id}/subjects`;
+
+  const result = await apiFetch<PaginatedResponse<Subject>>(endpoint, token);
   return result;
 }
