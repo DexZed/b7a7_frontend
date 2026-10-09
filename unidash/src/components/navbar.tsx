@@ -5,7 +5,7 @@ function Navbar() {
   const links = (
     <>
       <li>
-        <Link href="/guest-login" className="btn btn-outline btn-ghost">
+        <Link href="/guest" className="btn btn-outline btn-ghost">
           Guest Portal
         </Link>
       </li>

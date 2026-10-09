@@ -2,6 +2,7 @@
 import { signOut, useSession } from "@/lib/authClient";
 import { getInitials } from "@/lib/utils";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 function UserAvatarNav() {
   const user = useSession();
@@ -24,7 +25,10 @@ function UserAvatarNav() {
         <>
           <button
             className="btn btn-outline btn-ghost"
-            onClick={() => signOut()}
+            onClick={async () => {
+              await signOut();
+              redirect("/login");
+            }}
           >
             Logout
           </button>

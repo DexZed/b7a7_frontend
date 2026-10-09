@@ -39,13 +39,11 @@ export default function UserDetailsPage() {
   });
   const [subjects, setSubjects] = useState<Subject[]>([]);
 
-  // UI States
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"departments" | "subjects">(
     "departments",
   );
 
-  // Fetch data with proper dependency isolation
   useEffect(() => {
     if (!id) {
       router.replace("/admin/users");
@@ -59,7 +57,6 @@ export default function UserDetailsPage() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch both in parallel
         const [deptResult, subjectResult] = await Promise.all([
           getUserDepartmentsById(token, id, deptQuery),
           getUserSubjectsById(token, id, subjectQuery),
@@ -82,7 +79,7 @@ export default function UserDetailsPage() {
     fetchData();
 
     return () => {
-      isMounted = false; // Prevent state updates on unmounted component
+      isMounted = false;
     };
   }, [id, token, deptQuery, subjectQuery]);
 
@@ -115,7 +112,6 @@ export default function UserDetailsPage() {
 
       <div>
         <div className="tabs tabs-lift">
-          {/* Departments Tab */}
           <input
             type="radio"
             name="user_details_tabs"
@@ -168,7 +164,6 @@ export default function UserDetailsPage() {
               </table>
             </div>
 
-            {/* Dept Pagination Controls */}
             <div className="flex justify-center items-center gap-2 m-5">
               <div className="join">
                 <button
@@ -203,7 +198,6 @@ export default function UserDetailsPage() {
             </div>
           </div>
 
-          {/* Subjects Tab */}
           <input
             type="radio"
             name="user_details_tabs"
@@ -258,7 +252,6 @@ export default function UserDetailsPage() {
               </table>
             </div>
 
-            {/* Subject Pagination Controls */}
             <div className="flex justify-center items-center gap-2 m-5">
               <div className="join">
                 <button

@@ -5,10 +5,11 @@ import { useEffect, useState } from "react";
 import { User } from "@/lib/types";
 import { Info } from "lucide-react";
 import Link from "next/link";
+import SkeletonBanner, { SkeletonContent } from "@/components/skeletons";
 
 function AllUsers() {
   const { data: session } = useSession();
-
+  const [isLoading, setIsLoading] = useState(true);
   const [query, setQuery] = useState<{
     page?: number;
     limit?: number;
@@ -32,6 +33,7 @@ function AllUsers() {
     const fetchUsers = async () => {
       if (!session?.session?.token) return;
       try {
+        setIsLoading(true);
         const res = await getAllUsers(session.session.token as string, query);
         setUsers(res.data);
         if (res.pagination) {
@@ -39,6 +41,8 @@ function AllUsers() {
         }
       } catch (error) {
         console.error("Failed to fetch users:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchUsers();
@@ -75,6 +79,14 @@ function AllUsers() {
     if (newPage < 1 || newPage > pagination.totalPages) return;
     setQuery((prev) => ({ ...prev, page: newPage }));
   };
+  if (isLoading) {
+    return (
+      <>
+        <SkeletonBanner />
+        <SkeletonContent width={"full"} height={"min-h-screen"} />
+      </>
+    );
+  }
   return (
     <>
       <section className="flex flex-col gap-5 p-6">
