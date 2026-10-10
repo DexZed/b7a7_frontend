@@ -52,16 +52,16 @@ const AdminChart = () => {
   }
   const usersByRoleData = chartData?.usersByRole.map((role) => ({
     label: role.role.toUpperCase(),
-    Count: role.total,
+    "Users By Role": role.total,
   }));
   const subByDeptData = chartData?.subjectsByDepartment.map((dept) => ({
     label: dept.departmentName.toUpperCase(),
-    Count: dept.totalSubjects,
+    "Subjects Per Department": dept.totalSubjects,
   }));
   const classesBySubjectData = chartData?.classesBySubject.map((sub) => {
     return {
       label: sub.subjectName.toUpperCase(),
-      Count: sub.totalClasses,
+      "Classes Per Subject": sub.totalClasses,
     };
   });
   return (
@@ -85,9 +85,9 @@ const AdminChart = () => {
         <CartesianGrid />
         <XAxis dataKey="label" />
         <YAxis width="auto" />
-        <Tooltip />
+        <Tooltip contentStyle={{ color: "black" }} />
         <Legend />
-        <Bar dataKey="Count" radius={[10, 10, 0, 0]} />
+        <Bar dataKey="Users By Role" radius={[10, 10, 0, 0]} />
 
         <RechartsDevtools />
       </BarChart>
@@ -111,9 +111,9 @@ const AdminChart = () => {
         <CartesianGrid />
         <XAxis dataKey="label" />
         <YAxis width="auto" />
-        <Tooltip />
+        <Tooltip contentStyle={{ color: "black" }} />
         <Legend />
-        <Bar dataKey="Count" radius={[10, 10, 0, 0]} />
+        <Bar dataKey="Subjects Per Department" radius={[10, 10, 0, 0]} />
 
         <RechartsDevtools />
       </BarChart>
@@ -137,9 +137,9 @@ const AdminChart = () => {
         <CartesianGrid />
         <XAxis dataKey="label" />
         <YAxis width="auto" />
-        <Tooltip />
+        <Tooltip contentStyle={{ color: "black" }} />
         <Legend />
-        <Bar dataKey="Count" radius={[10, 10, 0, 0]} />
+        <Bar dataKey="Classes Per Subject" radius={[10, 10, 0, 0]} />
 
         <RechartsDevtools />
       </BarChart>

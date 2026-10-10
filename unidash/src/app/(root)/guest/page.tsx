@@ -28,13 +28,13 @@ function GuestLogin() {
     let data;
     switch (roleType) {
       case "admin":
-        data = { email: "admin@gmail.com", password: "123456789" };
+        data = { email: "houston92@hotmail.com", password: "123456789" };
         break;
       case "teacher":
-        data = { email: "teacher@gmail.com", password: "123456789" };
+        data = { email: "justyn.sipes1@yahoo.com", password: "123456789" };
         break;
       case "student":
-        data = { email: "student@gmail.com", password: "123456789" };
+        data = { email: "timmy42@yahoo.com", password: "123456789" };
         break;
       default:
         break;

@@ -11,6 +11,8 @@ import {
 } from "@/lib/types";
 import { revalidatePath } from "next/cache";
 
+// Department Data Access
+
 export async function getAllDepartments(
   token: string,
   queryObj?: { page?: number; limit?: number; search?: string },
@@ -67,6 +69,64 @@ export async function getDepartmentUsersById(
   id: string,
 ): Promise<Response<User[]>> {
   const endpoint = `/api/departments/${id}/users?role=teacher`;
+
+  const result = await apiFetch<Response<User[]>>(endpoint, token);
+  return result;
+}
+
+// Classes Data Access
+
+export async function getAllClasses(
+  token: string,
+  queryObj?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    teacherName?: string;
+    subjectName?: string;
+  },
+): Promise<PaginatedResponse<Class>> {
+  const dynamicQueryString = new URLSearchParams();
+  if (queryObj) {
+    const { page, limit, search, teacherName, subjectName } = queryObj;
+    if (page) dynamicQueryString.append("page", page.toString());
+    if (limit) dynamicQueryString.append("limit", limit.toString());
+    if (search) dynamicQueryString.append("search", search);
+    if (teacherName) dynamicQueryString.append("teacherName", teacherName);
+    if (subjectName) dynamicQueryString.append("subjectName", subjectName);
+  }
+  const queryString = dynamicQueryString.toString();
+  const endpoint = queryString ? `/api/classes?${queryString}` : `/api/classes`;
+
+  const result = await apiFetch<PaginatedResponse<Class>>(endpoint, token);
+  return result;
+}
+
+export async function createClass(
+  token: string,
+  classData: {
+    subjectId: number;
+    teacherId: string;
+    name: string;
+    price: number;
+    currency: string;
+    capacity: number;
+    description: string;
+  },
+): Promise<void> {
+  const endpoint = `/api/classes`;
+  await apiFetch<Class>(endpoint, token, {
+    method: "POST",
+    body: JSON.stringify(classData),
+  });
+  revalidatePath("/teacher/classes");
+}
+
+export async function getClassStudentsById(
+  token: string,
+  id: string,
+): Promise<Response<User[]>> {
+  const endpoint = `/api/classes/${id}/users?role=student`;
 
   const result = await apiFetch<Response<User[]>>(endpoint, token);
   return result;

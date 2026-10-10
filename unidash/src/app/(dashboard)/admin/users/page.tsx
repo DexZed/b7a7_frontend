@@ -159,8 +159,8 @@ function AllUsers() {
                       <tr key={u.id}>
                         <th>{serialNumber}</th>
                         <td>{u.name}</td>
-                        <td>{u.role}</td>
-                        <td>{u.email}</td>
+                        <td className="capitalize">{u.role}</td>
+                        <td className="capitalize">{u.email}</td>
                         <td>{new Date(u.createdAt).toLocaleDateString()}</td>
                         <td>
                           {u.updatedAt
