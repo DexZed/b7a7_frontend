@@ -7,6 +7,7 @@ import {
   PaginatedResponse,
   Response,
   Subject,
+  SubjectResponse,
   User,
 } from "@/lib/types";
 import { revalidatePath } from "next/cache";
@@ -139,4 +140,75 @@ export async function getClassById(
 
   const result = await apiFetch<Response<ClassesFullSchema>>(endpoint, token);
   return result;
+}
+
+// Subjects Data Access
+export async function getAllSubjects(
+  token: string,
+  queryObj?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    departmentName?: string;
+  },
+): Promise<PaginatedResponse<Subject>> {
+  const dynamicQueryString = new URLSearchParams();
+  if (queryObj) {
+    const { page, limit, search, departmentName } = queryObj;
+    if (page) dynamicQueryString.append("page", page.toString());
+    if (limit) dynamicQueryString.append("limit", limit.toString());
+    if (search) dynamicQueryString.append("search", search);
+    if (departmentName)
+      dynamicQueryString.append("departmentName", departmentName);
+  }
+  const queryString = dynamicQueryString.toString();
+  const endpoint = queryString
+    ? `/api/subjects?${queryString}`
+    : `/api/subjects`;
+
+  const result = await apiFetch<PaginatedResponse<Subject>>(endpoint, token);
+  return result;
+}
+export async function getsubjectById(
+  token: string,
+  id: string,
+): Promise<Response<SubjectResponse>> {
+  const endpoint = `/api/subjects/${id}`;
+
+  const result = await apiFetch<Response<SubjectResponse>>(endpoint, token);
+  return result;
+}
+export async function getClassesBySubjectId(
+  token: string,
+  id: string,
+): Promise<Response<Class[]>> {
+  const endpoint = `/api/subjects/${id}/classes`;
+
+  const result = await apiFetch<Response<Class[]>>(endpoint, token);
+  return result;
+}
+export async function getTeachersBySubjectId(
+  token: string,
+  id: string,
+): Promise<Response<User[]>> {
+  const endpoint = `/api/subjects/${id}/users?role=teacher`;
+
+  const result = await apiFetch<Response<User[]>>(endpoint, token);
+  return result;
+}
+export async function createSubject(
+  token: string,
+  subjectData: {
+    name: string;
+    code: string;
+    description: string;
+    departmentId: number;
+  },
+) {
+  const endpoint = `/api/subjects`;
+  await apiFetch<Subject>(endpoint, token, {
+    method: "POST",
+    body: JSON.stringify(subjectData),
+  });
+  revalidatePath("/teacher/subjects");
 }

@@ -121,3 +121,7 @@ export interface Schedules {
   endTime: string;
   onlineMeetLink: string;
 }
+
+export interface SubjectResponse {
+  subject: Subject;
+}
