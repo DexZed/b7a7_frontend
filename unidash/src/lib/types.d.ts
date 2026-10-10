@@ -44,6 +44,7 @@ export interface LatestData {
 
 export interface Class {
   id: number;
+  name: string;
   subjectId: number;
   teacherId: string;
   description: string;
@@ -111,5 +112,12 @@ export interface ClassesFullSchema {
   updatedAt: string;
   subject: Subject;
   teacher: User;
-  schedules: any | null;
+  schedules: Schedules[] | null | undefined;
+}
+
+export interface Schedules {
+  day: string;
+  startTime: string;
+  endTime: string;
+  onlineMeetLink: string;
 }

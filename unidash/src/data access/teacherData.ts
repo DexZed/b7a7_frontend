@@ -131,3 +131,12 @@ export async function getClassStudentsById(
   const result = await apiFetch<Response<User[]>>(endpoint, token);
   return result;
 }
+export async function getClassById(
+  token: string,
+  id: string,
+): Promise<Response<ClassesFullSchema>> {
+  const endpoint = `/api/classes/${id}`;
+
+  const result = await apiFetch<Response<ClassesFullSchema>>(endpoint, token);
+  return result;
+}
