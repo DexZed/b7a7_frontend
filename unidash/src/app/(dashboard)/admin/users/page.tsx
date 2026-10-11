@@ -11,7 +11,6 @@ import FormBody from "@/components/form";
 import { GenericTable } from "@/components/table";
 import PaginationControls from "@/components/pagination";
 import { motion } from "motion/react";
-import AnimeWrapper from "@/components/animationWrapper";
 
 function AllUsers() {
   const { data: session } = useSession();

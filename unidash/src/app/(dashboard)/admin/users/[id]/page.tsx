@@ -1,14 +1,18 @@
 "use client";
+import PageHeading from "@/components/pageHeading";
+import PaginationControls from "@/components/pagination";
 import SkeletonBanner, {
   SkeletonCards,
   SkeletonContent,
 } from "@/components/skeletons";
+import { GenericTable } from "@/components/table";
 import {
   getUserDepartmentsById,
   getUserSubjectsById,
 } from "@/data access/adminData";
 import { useSession } from "@/lib/authClient";
 import { Department, Subject } from "@/lib/types";
+import { motion } from "motion/react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -91,205 +95,171 @@ export default function UserDetailsPage() {
     setSubjectQuery((prev) => ({ ...prev, page: newPage }));
   };
 
-  if (isLoading && depts.length === 0 && subjects.length === 0) {
-    return (
-      <>
-        <SkeletonBanner />
-        <div className="flex gap-5">
-          <SkeletonCards width="w-full" height="h-96" count={2} />
-        </div>
-      </>
-    );
-  }
+  const columnsDept = [
+    {
+      key: "serial",
+      header: "#",
+      render: (_dept: Department, index: number) =>
+        (deptPagination.page - 1) * deptPagination.limit + index + 1,
+    },
+    {
+      key: "name",
+      header: "Name",
+      render: (dept: Department) => dept.name,
+    },
+    {
+      key: "code",
+      header: "Code",
+      className: "capitalize",
+      render: (dept: Department) => dept.code,
+    },
+    {
+      key: "description",
+      header: "Description",
+      className: "normal-case",
+      render: (dept: Department) => dept.description,
+    },
+    {
+      key: "createdAt",
+      header: "Created At",
+      render: (dept: Department) =>
+        new Date(dept.createdAt).toLocaleDateString(),
+    },
+    {
+      key: "updatedAt",
+      header: "Updated At",
+      render: (dept: Department) =>
+        dept.updatedAt
+          ? new Date(dept.updatedAt).toLocaleDateString()
+          : "Not Updated Yet",
+    },
+  ];
 
+  const columnsSubjects = [
+    {
+      key: "serial",
+      header: "#",
+      render: (_sub: Subject, index: number) =>
+        (deptPagination.page - 1) * deptPagination.limit + index + 1,
+    },
+    {
+      key: "name",
+      header: "Name",
+      render: (sub: Subject) => sub.name,
+    },
+    {
+      key: "code",
+      header: "Code",
+      className: "capitalize",
+      render: (sub: Subject) => sub.code,
+    },
+    {
+      key: "departmentName",
+      header: "Department Name",
+      className: "normal-case",
+      render: (sub: Subject) => sub.department.name,
+    },
+    {
+      key: "description",
+      header: "Description",
+      render: (sub: Subject) =>
+        sub.description.length > 30
+          ? sub.description.slice(0, 30) + "..."
+          : sub.description,
+    },
+    {
+      key: "createdAt",
+      header: "Created At",
+      render: (sub: Subject) => new Date(sub.createdAt).toLocaleDateString(),
+    },
+    {
+      key: "updatedAt",
+      header: "Updated At",
+      render: (sub: Subject) =>
+        sub.updatedAt
+          ? new Date(sub.updatedAt).toLocaleDateString()
+          : "Not Updated Yet",
+    },
+  ];
   return (
     <section className="flex min-h-screen flex-col gap-3 p-6">
-      <h1 className="text-3xl font-semibold">
-        User {id?.slice(0, 4)}... Details
-      </h1>
+      <PageHeading title={`User ${id?.slice(0, 4)}... Details`} />
 
       <div>
-        <div className="tabs tabs-lift">
-          <input
-            type="radio"
-            name="user_details_tabs"
-            className="tab"
-            aria-label="Departments"
-            defaultChecked
-            onChange={() => setActiveTab("departments")}
-          />
-          <div className="tab-content glass-morphism border-base-300 p-6">
-            <div className="glass-morphism overflow-x-auto">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Name</th>
-                    <th>Code</th>
-                    <th>Description</th>
-                    <th>Created At</th>
-                    <th>Updated At</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {depts.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="text-center py-4">
-                        No departments found.
-                      </td>
-                    </tr>
-                  ) : (
-                    depts.map((d, i) => (
-                      <tr key={d.id}>
-                        <th>
-                          {(deptPagination.page - 1) * deptPagination.limit +
-                            i +
-                            1}
-                        </th>
-                        <td>{d.name}</td>
-                        <td>{d.code}</td>
-                        <td>{d.description}</td>
-                        <td>{new Date(d.createdAt).toLocaleDateString()}</td>
-                        <td>
-                          {d.updatedAt
-                            ? new Date(d.updatedAt).toLocaleDateString()
-                            : "Not Updated Yet"}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+        >
+          <div className="tabs tabs-lift">
+            <input
+              type="radio"
+              name="user_details_tabs"
+              className="tab"
+              aria-label="Departments"
+              defaultChecked
+              onChange={() => setActiveTab("departments")}
+            />
+            <div className="tab-content glass-morphism border-base-300 p-6">
+              <div className="flex flex-col gap-5">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{
+                    opacity: 1,
+                  }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                >
+                  <GenericTable
+                    columns={columnsDept}
+                    data={depts ?? []}
+                    getRowKey={(dept) => dept.id}
+                    isLoading={isLoading}
+                    emptyMessage="No matching users found on this page."
+                    skeletonRows={5}
+                  />
+                </motion.div>
+
+                <PaginationControls
+                  handlePageChange={handleDeptPageChange}
+                  pagination={deptPagination}
+                />
+              </div>
             </div>
 
-            <div className="flex justify-center items-center gap-2 m-5">
-              <div className="join">
-                <button
-                  type="button"
-                  className="join-item btn btn-outline"
-                  onClick={() => handleDeptPageChange(deptPagination.page - 1)}
-                  disabled={deptPagination.page <= 1}
+            <input
+              type="radio"
+              name="user_details_tabs"
+              className="tab"
+              aria-label="Subjects"
+              onChange={() => setActiveTab("subjects")}
+            />
+            <div className="tab-content glass-morphism border-base-300 p-6">
+              <div className="flex flex-col gap-5">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{
+                    opacity: 1,
+                  }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
                 >
-                  «
-                </button>
-                <button
-                  type="button"
-                  className="join-item btn btn-outline btn-active"
-                >
-                  {deptPagination.page}
-                </button>
-                <button
-                  type="button"
-                  className="join-item btn btn-outline btn-disabled"
-                >
-                  of {deptPagination.totalPages || 1}
-                </button>
-                <button
-                  type="button"
-                  className="join-item btn btn-outline"
-                  onClick={() => handleDeptPageChange(deptPagination.page + 1)}
-                  disabled={deptPagination.page >= deptPagination.totalPages}
-                >
-                  »
-                </button>
+                  <GenericTable
+                    columns={columnsSubjects}
+                    data={subjects ?? []}
+                    getRowKey={(subject) => subject.id}
+                    isLoading={isLoading}
+                    emptyMessage="No matching users found on this page."
+                    skeletonRows={5}
+                  />
+                </motion.div>
+
+                <PaginationControls
+                  handlePageChange={handleSubjectPageChange}
+                  pagination={subjectPagination}
+                />
               </div>
             </div>
           </div>
-
-          <input
-            type="radio"
-            name="user_details_tabs"
-            className="tab"
-            aria-label="Subjects"
-            onChange={() => setActiveTab("subjects")}
-          />
-          <div className="tab-content glass-morphism border-base-300 p-6">
-            <div className="glass-morphism overflow-x-auto">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Name</th>
-                    <th>Code</th>
-                    <th>Department Name</th>
-                    <th>Description</th>
-                    <th>Created At</th>
-                    <th>Updated At</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {subjects.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="text-center py-4">
-                        No subjects found.
-                      </td>
-                    </tr>
-                  ) : (
-                    subjects.map((s, i) => (
-                      <tr key={s.id}>
-                        <th>
-                          {(subjectPagination.page - 1) *
-                            subjectPagination.limit +
-                            i +
-                            1}
-                        </th>
-                        <td>{s.name}</td>
-                        <td>{s.code}</td>
-                        <td>{s.department?.name}</td>
-                        <td>{s.description}</td>
-                        <td>{new Date(s.createdAt).toLocaleDateString()}</td>
-                        <td>
-                          {s.updatedAt
-                            ? new Date(s.updatedAt).toLocaleDateString() + ""
-                            : "Not Updated Yet"}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="flex justify-center items-center gap-2 m-5">
-              <div className="join">
-                <button
-                  type="button"
-                  className="join-item btn btn-outline"
-                  onClick={() =>
-                    handleSubjectPageChange(subjectPagination.page - 1)
-                  }
-                  disabled={subjectPagination.page <= 1}
-                >
-                  «
-                </button>
-                <button
-                  type="button"
-                  className="join-item btn btn-outline btn-active"
-                >
-                  {subjectPagination.page}
-                </button>
-                <button
-                  type="button"
-                  className="join-item btn btn-outline btn-disabled"
-                >
-                  of {subjectPagination.totalPages || 1}
-                </button>
-                <button
-                  type="button"
-                  className="join-item btn btn-outline"
-                  onClick={() =>
-                    handleSubjectPageChange(subjectPagination.page + 1)
-                  }
-                  disabled={
-                    subjectPagination.page >= subjectPagination.totalPages
-                  }
-                >
-                  »
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
