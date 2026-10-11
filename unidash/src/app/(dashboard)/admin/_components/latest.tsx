@@ -1,38 +1,31 @@
 "use client";
+import PageHeading from "@/components/pageHeading";
 import { SkeletonContent } from "@/components/skeletons";
-import { getlatest } from "@/data access/adminData";
+import { useLatestData } from "@/hooks/use-admin-hooks";
 import { useSession } from "@/lib/authClient";
-import { LatestData } from "@/lib/types";
 import { getInitials } from "@/lib/utils";
 import { BookBookmark, UserLock } from "lucide-react";
-import { useState, useEffect } from "react";
 
-function LatestStats() {
-  const { data: session, isPending } = useSession();
-  const [latestData, setLatestData] = useState<LatestData>();
+export function LatestStats() {
+  const { data: session } = useSession();
+  const token = session?.session?.token as string;
 
-  useEffect(() => {
-    if (isPending || !session) return;
+  const { data: response, isLoading } = useLatestData(token);
+  const latestData = response?.data;
 
-    const token = session.session.token;
-    const fetchLatestData = async () => {
-      const stats = await getlatest(token);
-      setLatestData(stats.data);
-    };
-    fetchLatestData();
-  }, [session, isPending]);
-  if (isPending) {
+  if (isLoading) {
     return <SkeletonContent />;
   }
+
   const classes = latestData?.latestClasses;
   const teachers = latestData?.latestTeachers;
 
   return (
     <div className="space-y-4">
-      <h1 className="text-3xl font-semibold text-center">Latest Additions</h1>
+      <PageHeading title={"Latest Additions"} className="text-center" />
       <div className="flex flex-col lg:flex-row justify-evenly gap-10">
         <div className="w-full">
-          <h1 className="text-xl font-semibold text-center m-2">Teachers</h1>
+          <PageHeading title={"Teachers"} className="text-center mb-3" />
           <div className="flex flex-col gap-5">
             <ul className="list glass-morphism rounded-box shadow-md">
               <li className="p-4 pb-2 text-xs opacity-60 tracking-wide">
@@ -62,8 +55,9 @@ function LatestStats() {
             </ul>
           </div>
         </div>
+
         <div className="w-full">
-          <h1 className="text-xl font-semibold text-center m-2">Classes</h1>
+          <PageHeading title={"Classes"} className="text-center mb-3" />
           <div className="flex flex-col gap-5">
             <ul className="list glass-morphism rounded-box shadow-md">
               <li className="p-4 pb-2 text-xs opacity-60 tracking-wide">
@@ -97,5 +91,4 @@ function LatestStats() {
     </div>
   );
 }
-
 export default LatestStats;

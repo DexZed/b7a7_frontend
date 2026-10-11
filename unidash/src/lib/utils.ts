@@ -1,6 +1,7 @@
 import Swal from "sweetalert2";
 import { ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { DefaultValues } from "react-hook-form";
 
 // Success alert
 export function showSuccessAlert(title: string, text: string): void {
@@ -69,4 +70,18 @@ export function getInitials(name: string | undefined) {
     initials = name?.[0];
   }
   return initials?.toUpperCase();
+}
+
+export function textTruncate(
+  text: string,
+  maxWords: number = 10,
+  suffix = "...",
+): string {
+  const words = text.split(" ");
+
+  if (words.length > maxWords) {
+    return words.slice(0, maxWords).join(" ") + suffix;
+  }
+
+  return text;
 }

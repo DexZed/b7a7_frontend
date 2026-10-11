@@ -1,263 +1,141 @@
 "use client";
 import { useSession } from "@/lib/authClient";
-import { useEffect, useState } from "react";
+import { useDeferredValue, useState, useTransition } from "react";
 import Link from "next/link";
 import { Info } from "lucide-react";
-
-import SkeletonBanner, { SkeletonContent } from "@/components/skeletons";
 import { Subject } from "@/lib/types";
-import { getAllSubjects } from "@/data access/teacherData";
-import SubjectForm from "./_components/subjectForm";
+import PageHeading from "@/components/pageHeading";
+import SearchField from "@/components/searchField";
+import { useSubjects } from "@/hooks/uses-teacher-hooks";
+import { motion } from "motion/react";
+import { GenericTable } from "@/components/table";
+import PaginationControls from "@/components/pagination";
 
-function SubjectsPage() {
+export function SubjectsPage() {
   const { data: session } = useSession();
-  const [isLoading, setIsLoading] = useState(true);
+  const token = session?.session?.token ?? "";
+
+  // 1. Query parameters state
   const [query, setQuery] = useState<{
     page?: number;
     limit?: number;
     search?: string;
   }>({ page: 1, limit: 10 });
 
-  const [pagination, setPagination] = useState<{
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  }>({ page: 1, limit: 10, total: 0, totalPages: 1 });
-
   const [searchInput, setSearchInput] = useState("");
+  const [isPending, startTransition] = useTransition();
 
-  const [debouncedFilter, setDebouncedFilter] = useState("");
+  // 2. Defer search input to keep typing responsive
+  const deferredSearch = useDeferredValue(searchInput);
 
-  const [subjects, setSubjects] = useState<Subject[]>([]);
+  // 3. Combined query payload with deferred search
+  const activeQuery = {
+    ...query,
+    search: deferredSearch || undefined,
+  };
 
-  useEffect(() => {
-    const fetchSubjects = async () => {
-      if (!session?.session?.token) return;
-      try {
-        setIsLoading(true);
-        const res = await getAllSubjects(
-          session.session.token as string,
-          query,
-        );
-        setSubjects(res.data);
-        if (res.pagination) {
-          setPagination(res.pagination);
-        }
-      } catch (error) {
-        console.error("Failed to fetch Subjects:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchSubjects();
-  }, [query, session]);
+  // 4. Fetch data natively via TanStack Query hook
+  const {
+    data: subjectsData,
+    isLoading,
+    isFetching,
+  } = useSubjects(token, activeQuery);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedFilter(searchInput);
-    }, 300);
+  const subjects = subjectsData?.data ?? [];
+  const pagination = subjectsData?.pagination ?? {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
+  };
 
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchInput(value);
 
-  const filteredSubjects = subjects?.filter((s) => {
-    if (!debouncedFilter) return true;
-    const term = debouncedFilter.toLowerCase();
-    return (
-      s?.name?.toLowerCase().includes(term) ||
-      s?.department?.name?.toLowerCase().includes(term)
-    );
-  });
-
-  const handleServerSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setQuery((prev) => ({
-      ...prev,
-      search: searchInput,
-      page: 1,
-    }));
+    startTransition(() => {
+      setQuery((prev) => ({ ...prev, search: value, page: 1 }));
+    });
   };
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > pagination.totalPages) return;
-    setQuery((prev) => ({ ...prev, page: newPage }));
+    startTransition(() => {
+      setQuery((prev) => ({ ...prev, page: newPage }));
+    });
   };
-  if (isLoading) {
-    return (
-      <>
-        <SkeletonBanner />
-        <SkeletonContent width={"full"} height={"min-h-screen"} />
-      </>
-    );
-  }
+
+  const columns = [
+    {
+      key: "serial",
+      header: "#",
+      render: (_: Subject, index: number) =>
+        (query.page! - 1) * query.limit! + index + 1,
+    },
+    {
+      key: "name",
+      header: "Name",
+      render: (s: Subject) => s.name,
+    },
+    {
+      key: "code",
+      header: "Code",
+      render: (s: Subject) => s.code,
+    },
+    {
+      key: "description",
+      header: "Description",
+      render: (s: Subject) => {
+        const desc = s.description || "";
+        return desc.length > 50 ? desc.slice(0, 50) + "..." : desc;
+      },
+    },
+    {
+      key: "createdAt",
+      header: "Created At",
+      render: (s: Subject) => new Date(s.createdAt).toLocaleDateString(),
+    },
+    {
+      key: "details",
+      header: "Details",
+      render: (s: Subject) => (
+        <Link
+          className="btn btn-ghost btn-outline"
+          href={`/teacher/subjects/${s.id}`}
+        >
+          <Info />
+        </Link>
+      ),
+    },
+  ];
   return (
     <>
       <section className="flex flex-col gap-5 p-6 min-h-screen">
-        <h1 className="text-3xl font-semibold">All Subjects</h1>
-        <div className="flex justify-evenly items-center">
-          <form onSubmit={handleServerSearch}>
-            <div className="glass-morphism m-5 p-5">
-              <div className="join">
-                <div>
-                  <label className="input input-accent validator join-item">
-                    <svg
-                      className="h-[1em] opacity-50"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        strokeLinejoin="round"
-                        strokeLinecap="round"
-                        strokeWidth="2.5"
-                        fill="none"
-                        stroke="currentColor"
-                      >
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.3-4.3"></path>
-                      </g>
-                    </svg>
-                    <input
-                      type="text"
-                      value={searchInput}
-                      onChange={(e) => setSearchInput(e.target.value)}
-                      placeholder="Search"
-                    />
-                  </label>
-                  <div className="validator-hint hidden">Start typing...</div>
-                </div>
-                <button
-                  type="submit"
-                  className="btn btn-accent btn-outline join-item"
-                >
-                  Search
-                </button>
-              </div>
-            </div>
-          </form>
-          <button
-            onClick={() =>
-              (
-                document.getElementById("add-department") as HTMLDialogElement
-              )?.showModal()
-            }
-            className="btn btn-primary btn-outline"
-          >
-            Add Subject
-          </button>
-        </div>
-        <dialog
-          id="add-department"
-          className="modal modal-bottom sm:modal-middle"
+        <PageHeading title="All Subjects" />
+
+        <SearchField value={searchInput} onChange={handleSearchChange} />
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{
+            opacity: isFetching || isPending ? 0.5 : 1,
+          }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
         >
-          <div className="modal-box">
-            <form method="dialog">
-              <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
-                ✕
-              </button>
-            </form>
-            <h3 className="text-2xl font-semibold">Add New Subject</h3>
-            <SubjectForm />
-          </div>
-        </dialog>
+          <GenericTable
+            columns={columns}
+            data={subjects}
+            getRowKey={(subject) => subject.id}
+            isLoading={isLoading || isFetching || isPending}
+            emptyMessage="No matching subjects found."
+            skeletonRows={5}
+          />
+        </motion.div>
 
-        <div className="glass-morphism">
-          <div className="overflow-x-auto">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th></th>
-                  <th>Name</th>
-
-                  <th>Code</th>
-                  <th>Description</th>
-
-                  <th>Created At</th>
-                  <th>Details</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredSubjects?.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="text-center py-4">
-                      No matching subjects found on this page.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredSubjects?.map((s, i) => {
-                    const serialNumber =
-                      (pagination.page - 1) * pagination.limit + i + 1;
-                    return (
-                      <tr key={s.id}>
-                        <th>{serialNumber}</th>
-                        <td>{s.name}</td>
-                        <td>{s.code}</td>
-                        <td>
-                          {s.description?.length > 50
-                            ? s.description.slice(0, 50) + "..."
-                            : s.description}
-                        </td>
-                        <td>{new Date(s.createdAt).toLocaleDateString()}</td>
-
-                        <td>
-                          <Link
-                            className="btn btn-ghost btn-outline"
-                            href={`/teacher/subjects/${s.id}`}
-                          >
-                            <Info />
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className="flex justify-center items-center gap-2">
-          <div className="join">
-            <button
-              type="button"
-              className="join-item btn btn-outline"
-              onClick={() => handlePageChange(pagination.page - 1)}
-              disabled={pagination.page <= 1}
-            >
-              «
-            </button>
-            <button
-              type="button"
-              className="join-item btn btn-outline btn-active"
-            >
-              {pagination.page}
-            </button>
-            <button
-              type="button"
-              className="join-item btn btn-outline btn-disabled"
-            >
-              of {pagination.totalPages || 1}
-            </button>
-            <button
-              type="button"
-              className="join-item btn btn-outline"
-              disabled={pagination.page >= pagination.totalPages}
-              onClick={() => handlePageChange(pagination.page + 1)}
-            >
-              {pagination.page + 1 <= pagination.totalPages
-                ? pagination.page + 1
-                : pagination.page}
-            </button>
-            <button
-              type="button"
-              className="join-item btn btn-outline"
-              onClick={() => handlePageChange(pagination.page + 1)}
-              disabled={pagination.page >= pagination.totalPages}
-            >
-              »
-            </button>
-          </div>
-        </div>
+        <PaginationControls
+          handlePageChange={handlePageChange}
+          pagination={pagination}
+        />
       </section>
     </>
   );

@@ -1,7 +1,10 @@
 "use client";
+
 import Navbar from "@/components/navbar";
+import PageHeading from "@/components/pageHeading";
 import { signIn } from "@/lib/authClient";
 import { showErrorAlert, showSuccessAlert } from "@/lib/utils";
+import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 
 function GuestLogin() {
@@ -63,9 +66,15 @@ function GuestLogin() {
   return (
     <>
       <Navbar />
-      <section className="min-h-screen flex flex-col gap-5">
-        <h1 className="text-3xl text-center m-3">Select Role Log in Type</h1>
-        <div className="flex justify-evenly gap-4 p-4">
+
+      <section className="min-h-screen flex flex-col gap-5 items-center p-5">
+        <PageHeading title="Select Role To Login" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-wrap justify-evenly gap-4 p-4"
+        >
           {roles?.map((role, index) => (
             <div
               key={index}
@@ -86,7 +95,7 @@ function GuestLogin() {
               </div>
             </div>
           ))}
-        </div>
+        </motion.div>
       </section>
     </>
   );

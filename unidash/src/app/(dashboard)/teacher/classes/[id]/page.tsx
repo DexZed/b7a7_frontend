@@ -1,217 +1,218 @@
 "use client";
-import SkeletonBanner, { SkeletonCards } from "@/components/skeletons";
-import { getClassById, getClassStudentsById } from "@/data access/teacherData";
+import GenericList from "@/components/genericList";
+import PageHeading from "@/components/pageHeading";
+import { GenericTable } from "@/components/table";
+import Tabs from "@/components/tabs";
+import { useClassById, useClassStudents } from "@/hooks/uses-teacher-hooks";
 
 import { useSession } from "@/lib/authClient";
-import { ClassesFullSchema, User } from "@/lib/types";
-import { useParams, useRouter } from "next/navigation";
+import { Schedules, User } from "@/lib/types";
+import { useParams } from "next/navigation";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 function ClassDetailsPage() {
-  const router = useRouter();
   const params = useParams();
   const id = params.id as string;
   const { data: session } = useSession();
-  const token = session?.session?.token;
+  const token = session?.session?.token ?? "";
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"class_details" | "users">(
-    "class_details",
-  );
+  const tabItems = [
+    { label: "Class Details", defaultChecked: true },
+    { label: "Users" },
+  ] as const;
 
-  const [classData, setClassData] = useState<ClassesFullSchema>();
-  const [users, setUsers] = useState<User[]>([]);
+  type Tab = (typeof tabItems)[number]["label"];
+  const [activeTab, setActiveTab] = useState<Tab>("Class Details");
 
-  useEffect(() => {
-    if (!id) {
-      router.replace("/teacher/classes");
-      return;
-    }
+  // 1. Fetch class details teachers/users using TanStack Query hooks
+  const {
+    data: classesResult,
+    isLoading: isClassLoading,
+    isFetching: isClassFetching,
+  } = useClassById(token, id);
 
-    if (!token) return;
+  const {
+    data: usersResult,
+    isLoading: isUsersLoading,
+    isFetching: isUsersFetching,
+  } = useClassStudents(token, id);
 
-    let isMounted = true;
+  // 2. Extract data safely from responses
+  const classData = classesResult?.data;
 
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const [classDataResult, usersResult] = await Promise.all([
-          getClassById(token, id),
-          getClassStudentsById(token, id),
-        ]);
-        if (isMounted) {
-          setClassData(classDataResult.data);
-          setUsers(usersResult.data);
-        }
-      } catch (error) {
-        console.error("Failed to Class or Users details:", error);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    };
+  const users = usersResult?.data ?? [];
 
-    fetchData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [id, token]);
-
-  if (isLoading && classData === undefined && users.length === 0) {
-    return (
-      <>
-        <SkeletonBanner />
-        <div className="flex gap-5">
-          <SkeletonCards width="w-full" height="h-96" count={3} />
-        </div>
-      </>
-    );
-  }
-
+  // 3. Compute loading and fetching statuses
+  const isLoading = isClassLoading || isUsersLoading;
+  const isFetching = isClassFetching || isUsersFetching;
+  const usersColumns = [
+    {
+      key: "serial",
+      header: "#",
+      render: (_: User, index: number) => index + 1,
+    },
+    {
+      key: "name",
+      header: "Name",
+      render: (u: User) => u.name,
+    },
+    {
+      key: "email",
+      header: "Email",
+      className: "lowercase",
+      render: (u: User) => u.email,
+    },
+    {
+      key: "role",
+      header: "Role",
+      render: (u: User) => u.role,
+    },
+    {
+      key: "createdAt",
+      header: "Created At",
+      render: (u: User) => new Date(u.createdAt).toLocaleDateString(),
+    },
+    {
+      key: "updatedAt",
+      header: "Updated At",
+      render: (u: User) =>
+        u.updatedAt
+          ? new Date(u.updatedAt).toLocaleDateString()
+          : "Not Updated Yet",
+    },
+  ];
   return (
     <>
       <section className="flex min-h-screen flex-col gap-3 p-6">
-        <h1 className="text-3xl font-semibold">
-          Class Details: {classData?.name}
-        </h1>
+        <PageHeading title={` Class Details: ${classData?.name}`} />
 
         <div>
-          <div className="tabs tabs-lift">
-            <input
-              type="radio"
-              name="class_details_tabs"
-              className="tab"
-              aria-label="Class Details"
-              defaultChecked
-              onChange={() => setActiveTab("class_details")}
-            />
-            <div className="tab-content glass-morphism border-base-300 p-6">
-              <div className="glass-morphism overflow-x-auto">
-                <div className="card card-xl w-full glass-morphism shadow-sm">
-                  <div className="card-body">
-                    <span className="badge badge-xs badge-warning">
-                      {classData?.status}
-                    </span>
-                    <div className="flex justify-between">
-                      <h2 className="text-3xl font-bold">{classData?.name}</h2>
-                      <span className="text-xl">
-                        Price: {classData?.currency} {classData?.price}
-                      </span>
-                    </div>
-                    <div className="collapse collapse-arrow glass-morphism border border-base-300">
-                      <input
-                        type="radio"
-                        name="my-accordion-2"
-                        defaultChecked
-                      />
-                      <div className="collapse-title font-semibold">Name</div>
-                      <div className="collapse-content text-sm">
-                        {classData?.name}
-                      </div>
-                    </div>
-                    <div className="collapse collapse-arrow glass-morphism border border-base-300">
-                      <input type="radio" name="my-accordion-2" />
-                      <div className="collapse-title font-semibold">
-                        Invite Code
-                      </div>
-                      <div className="collapse-content text-sm">
-                        {classData?.inviteCode}
-                      </div>
-                    </div>
-                    <div className="collapse collapse-arrow glass-morphism border border-base-300">
-                      <input type="radio" name="my-accordion-2" />
-                      <div className="collapse-title font-semibold">
-                        Capacity
-                      </div>
-                      <div className="collapse-content text-sm">
-                        {classData?.capacity}
-                      </div>
-                    </div>
-                    <div className="collapse collapse-arrow glass-morphism border border-base-300">
-                      <input type="radio" name="my-accordion-2" />
-                      <div className="collapse-title font-semibold">
-                        Schedules
-                      </div>
-                      <div className="collapse-content text-sm">
-                        Day: {classData?.schedules?.[0].day},<br /> Time:{" "}
-                        {classData?.schedules?.[0].startTime.slice(0, 5)} -{" "}
-                        {classData?.schedules?.[0].endTime.slice(0, 5)},<br />{" "}
-                        Online Meet Link :{" "}
-                        {classData?.schedules?.[0].onlineMeetLink}
-                      </div>
-                    </div>
-                    <div className="collapse collapse-arrow glass-morphism border border-base-300">
-                      <input type="radio" name="my-accordion-2" />
-                      <div className="collapse-title font-semibold">
-                        Created At
-                      </div>
-                      <div className="collapse-content text-sm">
-                        {new Date(classData?.createdAt!).toDateString()}
-                      </div>
-                    </div>
-                    <div className="collapse collapse-arrow glass-morphism border border-base-300">
-                      <input type="radio" name="my-accordion-2" />
-                      <div className="collapse-title font-semibold">
-                        Updated At
-                      </div>
-                      <div className="collapse-content text-sm">
-                        {new Date(classData?.updatedAt!).toDateString()}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <Tabs
+            tabItems={[
+              {
+                label: "Class Details",
+                defaultChecked: true,
+              },
+              {
+                label: "Users",
+              },
+            ]}
+            setActiveTab={(tab) => setActiveTab(tab)}
+            tabContent={{
+              "Class Details": (
+                <>
+                  <GenericList
+                    listTitle="Class Details"
+                    listItems={[
+                      {
+                        itemName: "Class Name:",
+                        itemDescription:
+                          classData?.name ?? (isLoading ? "Loading..." : "N/A"),
+                      },
+                      {
+                        itemName: "Class Description:",
+                        itemDescription:
+                          classData?.description ??
+                          (isLoading ? "Loading..." : "N/A"),
+                      },
+                      {
+                        itemName: "Class Invite Code:",
+                        itemDescription:
+                          classData?.inviteCode ??
+                          (isLoading ? "Loading..." : "N/A"),
+                      },
+                      {
+                        itemName: "Class Capacity:",
+                        itemDescription:
+                          classData?.capacity.toString() ??
+                          (isLoading ? "Loading..." : "N/A"),
+                      },
+                      {
+                        itemName: "Class Schedule:",
+                        itemRender: (
+                          <>
+                            <GenericTable<Schedules>
+                              columns={[
+                                {
+                                  key: "day",
+                                  header: "Day",
+                                  render: (row) => row.day,
+                                },
+                                {
+                                  key: "startTime",
+                                  header: "Start Time",
+                                  render: (row) => row.startTime,
+                                },
+                                {
+                                  key: "endTime",
+                                  header: "End Time",
+                                  render: (row) => row.endTime,
+                                },
+                                {
+                                  key: "onlineMeetLink",
+                                  header: "Meet Link",
+                                  render: (row) =>
+                                    row.onlineMeetLink ? (
+                                      <a
+                                        href={row.onlineMeetLink}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-primary underline"
+                                      >
+                                        Join
+                                      </a>
+                                    ) : (
+                                      "N/A"
+                                    ),
+                                },
+                              ]}
+                              data={classData?.schedules ?? []}
+                              getRowKey={(row) => `${row.day}-${row.startTime}`}
+                              isLoading={isLoading}
+                              emptyMessage={
+                                isLoading
+                                  ? "Loading schedules..."
+                                  : "No schedules found."
+                              }
+                            />
+                          </>
+                        ),
+                      },
+                      {
+                        itemName: "Subject Created At:",
+                        itemDescription:
+                          new Date(
+                            classData?.createdAt!,
+                          ).toLocaleDateString() ??
+                          (isLoading ? "Loading..." : "N/A"),
+                      },
+                      {
+                        itemName: "Subject Updated At:",
+                        itemDescription:
+                          new Date(
+                            classData?.updatedAt!,
+                          ).toLocaleDateString() ??
+                          (isLoading ? "Loading..." : "N/A"),
+                      },
+                    ]}
+                  />
+                </>
+              ),
 
-            <input
-              type="radio"
-              name="class_details_tabs"
-              className="tab"
-              aria-label="Users"
-              onChange={() => setActiveTab("users")}
-            />
-            <div className="tab-content glass-morphism border-base-300 p-6">
-              <div className="glass-morphism overflow-x-auto">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th></th>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Role</th>
-                      <th>Joined At</th>
-                      <th>Last Updated</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="text-center py-4">
-                          No Users found.
-                        </td>
-                      </tr>
-                    ) : (
-                      users.map((u, i) => (
-                        <tr key={u.id}>
-                          <th>{i + 1}</th>
-                          <td>{u.name}</td>
-                          <td className="capitalize">{u.email}</td>
-                          <td className="capitalize">{u.role}</td>
-                          <td>{new Date(u.createdAt).toLocaleDateString()}</td>
-                          <td>
-                            {u.updatedAt
-                              ? new Date(u.updatedAt).toLocaleDateString()
-                              : "Not Updated Yet"}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+              Users: (
+                <GenericTable
+                  columns={usersColumns}
+                  data={users}
+                  getRowKey={(u) => u.id}
+                  isLoading={isUsersLoading || isUsersFetching}
+                  emptyMessage="No matching users found."
+                  skeletonRows={5}
+                />
+              ),
+            }}
+            isFetching={isFetching}
+          />
         </div>
       </section>
     </>

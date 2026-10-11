@@ -1,252 +1,208 @@
 "use client";
-import SkeletonBanner, { SkeletonCards } from "@/components/skeletons";
+import GenericList from "@/components/genericList";
+import PageHeading from "@/components/pageHeading";
+import { GenericTable } from "@/components/table";
+import Tabs from "@/components/tabs";
 import {
-  getClassesBySubjectId,
-  getsubjectById,
-  getTeachersBySubjectId,
-} from "@/data access/teacherData";
-
+  useSubjectById,
+  useClassesBySubjectId,
+  useTeachersBySubjectId,
+} from "@/hooks/uses-teacher-hooks";
 import { useSession } from "@/lib/authClient";
-import { Class, SubjectResponse, User } from "@/lib/types";
+import { Class, User } from "@/lib/types";
+import { useParams } from "next/navigation";
+import { useState } from "react";
 
-import { useParams, useRouter } from "next/navigation";
-
-import { useEffect, useState } from "react";
-
-function SubjectDetailPage() {
-  const router = useRouter();
+export function SubjectDetailPage() {
   const params = useParams();
   const id = params.id as string;
   const { data: session } = useSession();
-  const token = session?.session?.token;
+  const token = session?.session?.token ?? "";
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<
-    "subject_details" | "classes" | "users"
-  >("subject_details");
+  const tabItems = [
+    { label: "Subject Details", defaultChecked: true },
+    { label: "Classes" },
+    { label: "Users" },
+  ] as const;
 
-  const [subjectData, setSubjectData] = useState<SubjectResponse>();
-  const [classes, setClasses] = useState<Class[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  type Tab = (typeof tabItems)[number]["label"];
+  const [activeTab, setActiveTab] = useState<Tab>("Subject Details");
 
-  useEffect(() => {
-    if (!id) {
-      router.replace("/teacher/classes");
-      return;
-    }
+  // 1. Fetch subject details, related classes, and teachers/users using TanStack Query hooks
+  const {
+    data: subjectResult,
+    isLoading: isSubjectLoading,
+    isFetching: isSubjectFetching,
+  } = useSubjectById(token, id);
 
-    if (!token) return;
+  const {
+    data: classesResult,
+    isLoading: isClassesLoading,
+    isFetching: isClassesFetching,
+  } = useClassesBySubjectId(token, id);
 
-    let isMounted = true;
+  const {
+    data: usersResult,
+    isLoading: isUsersLoading,
+    isFetching: isUsersFetching,
+  } = useTeachersBySubjectId(token, id);
 
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const [subjectDataResult, classesData, usersData] = await Promise.all([
-          getsubjectById(token, id),
-          getClassesBySubjectId(token, id),
-          getTeachersBySubjectId(token, id),
-        ]);
-        if (isMounted) {
-          setSubjectData(subjectDataResult.data);
-          setClasses(classesData.data);
-          setUsers(usersData.data);
-        }
-      } catch (error) {
-        console.error("Failed to Fetch Data:", error);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    };
+  // 2. Extract data safely from responses
+  const subjectData = subjectResult?.data;
+  const classes = classesResult?.data ?? [];
+  const users = usersResult?.data ?? [];
 
-    fetchData();
+  // 3. Compute loading and fetching statuses
+  const isLoading = isSubjectLoading || isClassesLoading || isUsersLoading;
+  const isFetching = isSubjectFetching || isClassesFetching || isUsersFetching;
 
-    return () => {
-      isMounted = false;
-    };
-  }, [id, token]);
+  const classesColumns = [
+    {
+      key: "serial",
+      header: "#",
+      render: (_: Class, index: number) => index + 1,
+    },
+    {
+      key: "className",
+      header: "Class Name",
+      render: (c: Class) => c.name,
+    },
+    {
+      key: "description",
+      header: "Description",
+      className: "normal-case",
+      render: (c: Class) => c.description,
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (c: Class) => c.status,
+    },
+    {
+      key: "createdAt",
+      header: "Created At",
+      render: (c: Class) => new Date(c.createdAt).toLocaleDateString(),
+    },
+  ];
 
-  if (
-    isLoading &&
-    subjectData === undefined &&
-    users.length === 0 &&
-    classes.length === 0
-  ) {
-    return (
-      <>
-        <SkeletonBanner />
-        <div className="flex gap-5">
-          <SkeletonCards width="w-full" height="h-96" count={3} />
-        </div>
-      </>
-    );
-  }
+  const usersColumns = [
+    {
+      key: "serial",
+      header: "#",
+      render: (_: User, index: number) => index + 1,
+    },
+    {
+      key: "name",
+      header: "Name",
+      render: (u: User) => u.name,
+    },
+    {
+      key: "email",
+      header: "Email",
+      className: "lowercase",
+      render: (u: User) => u.email,
+    },
+    {
+      key: "role",
+      header: "Role",
+      render: (u: User) => u.role,
+    },
+    {
+      key: "createdAt",
+      header: "Created At",
+      render: (u: User) => new Date(u.createdAt).toLocaleDateString(),
+    },
+    {
+      key: "updatedAt",
+      header: "Updated At",
+      render: (u: User) =>
+        u.updatedAt
+          ? new Date(u.updatedAt).toLocaleDateString()
+          : "Not Updated Yet",
+    },
+  ];
 
   return (
     <>
       <section className="flex min-h-screen flex-col gap-3 p-6">
-        <h1 className="text-3xl font-semibold">
-          Subject Details:{" "}
-          {subjectData?.subject.name.slice(0, 1).toLocaleUpperCase() +
-            subjectData?.subject.name.slice(1)!}
-        </h1>
+        <PageHeading title={`Subject ${id?.slice(0, 4)}... Details`} />
 
         <div>
-          <div className="tabs tabs-lift">
-            <input
-              type="radio"
-              name="subject_details_tabs"
-              className="tab"
-              aria-label="Subject Details"
-              defaultChecked
-              onChange={() => setActiveTab("subject_details")}
-            />
-            <div className="tab-content glass-morphism border-base-300 p-6">
-              <div className="glass-morphism overflow-x-auto">
-                <div className="card card-xl w-full glass-morphism shadow-sm">
-                  <div className="card-body">
-                    <span className="badge badge-xs badge-warning">
-                      {subjectData?.subject.id}
-                    </span>
-                    <div className="flex justify-between">
-                      <h2 className="text-3xl font-bold capitalize">
-                        {subjectData?.subject.name}
-                      </h2>
-                      <span className="text-xl capitalize">
-                        Code: {subjectData?.subject.code}
-                      </span>
-                    </div>
-                    <div className="collapse collapse-arrow glass-morphism border border-base-300">
-                      <input
-                        type="radio"
-                        name="my-accordion-2"
-                        defaultChecked
-                      />
-                      <div className="collapse-title font-semibold">Name</div>
-                      <div className="collapse-content text-sm capitalize">
-                        {subjectData?.subject.name}
-                      </div>
-                    </div>
-
-                    <div className="collapse collapse-arrow glass-morphism border border-base-300">
-                      <input type="radio" name="my-accordion-2" />
-                      <div className="collapse-title font-semibold">
-                        Description
-                      </div>
-                      <div className="collapse-content text-sm">
-                        {subjectData?.subject.description}
-                      </div>
-                    </div>
-                    <div className="collapse collapse-arrow glass-morphism border border-base-300">
-                      <input type="radio" name="my-accordion-2" />
-                      <div className="collapse-title font-semibold">
-                        Created At
-                      </div>
-                      <div className="collapse-content text-sm">
-                        {new Date(
-                          subjectData?.subject.createdAt!,
-                        ).toDateString()}
-                      </div>
-                    </div>
-                    <div className="collapse collapse-arrow glass-morphism border border-base-300">
-                      <input type="radio" name="my-accordion-2" />
-                      <div className="collapse-title font-semibold">
-                        Updated At
-                      </div>
-                      <div className="collapse-content text-sm">
-                        {new Date(
-                          subjectData?.subject.updatedAt!,
-                        ).toDateString()}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <input
-              type="radio"
-              name="subject_details_tabs"
-              className="tab"
-              aria-label="Classes"
-              onChange={() => setActiveTab("classes")}
-            />
-            <div className="tab-content glass-morphism border-base-300 p-6">
-              <div className="glass-morphism overflow-x-auto">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th></th>
-                      <th>Name</th>
-                      <th>Description</th>
-                      <th>Status</th>
-                      <th>Created At</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {classes.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="text-center py-4">
-                          No Classes found.
-                        </td>
-                      </tr>
-                    ) : (
-                      classes.map((c, i) => (
-                        <tr key={c.id}>
-                          <th>{i + 1}</th>
-                          <td>{c.name}</td>
-                          <td className="capitalize">{c.description}</td>
-                          <td className="capitalize">{c.status}</td>
-                          <td>{new Date(c.createdAt).toLocaleDateString()}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <input
-              type="radio"
-              name="subject_details_tabs"
-              className="tab"
-              aria-label="Users"
-              onChange={() => setActiveTab("users")}
-            />
-            <div className="tab-content glass-morphism border-base-300 p-6">
-              <div className="glass-morphism overflow-x-auto">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th></th>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Role</th>
-                      <th>Joined At</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="text-center py-4">
-                          No Users found.
-                        </td>
-                      </tr>
-                    ) : (
-                      users.map((u, i) => (
-                        <tr key={u.id}>
-                          <th>{i + 1}</th>
-                          <td>{u.name}</td>
-                          <td className="capitalize">{u.email}</td>
-                          <td className="capitalize">{u.role}</td>
-                          <td>{new Date(u.createdAt).toLocaleDateString()}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+          <Tabs
+            tabItems={[
+              {
+                label: "Subject Details",
+                defaultChecked: true,
+              },
+              {
+                label: "Classes",
+              },
+              {
+                label: "Users",
+              },
+            ]}
+            setActiveTab={(tab) => setActiveTab(tab)}
+            tabContent={{
+              "Subject Details": (
+                <>
+                  <GenericList
+                    listTitle="Subject Details"
+                    listItems={[
+                      {
+                        itemName: "Subject Name:",
+                        itemDescription:
+                          subjectData?.subject.description ??
+                          (isLoading ? "Loading..." : "N/A"),
+                      },
+                      {
+                        itemName: "Subject Description:",
+                        itemDescription:
+                          subjectData?.subject.description ??
+                          (isLoading ? "Loading..." : "N/A"),
+                      },
+                      {
+                        itemName: "Subject Created At:",
+                        itemDescription:
+                          new Date(
+                            subjectData?.subject.createdAt!,
+                          ).toLocaleDateString() ??
+                          (isLoading ? "Loading..." : "N/A"),
+                      },
+                      {
+                        itemName: "Subject Updated At:",
+                        itemDescription:
+                          new Date(
+                            subjectData?.subject.updatedAt!,
+                          ).toLocaleDateString() ??
+                          (isLoading ? "Loading..." : "N/A"),
+                      },
+                    ]}
+                  />
+                </>
+              ),
+              Classes: (
+                <GenericTable
+                  columns={classesColumns}
+                  data={classes}
+                  getRowKey={(clas) => clas.id}
+                  isLoading={isClassesLoading || isClassesFetching}
+                  emptyMessage="No matching classes found."
+                  skeletonRows={5}
+                />
+              ),
+              Users: (
+                <GenericTable
+                  columns={usersColumns}
+                  data={users}
+                  getRowKey={(u) => u.id}
+                  isLoading={isUsersLoading || isUsersFetching}
+                  emptyMessage="No matching users found."
+                  skeletonRows={5}
+                />
+              ),
+            }}
+            isFetching={isFetching}
+          />
         </div>
       </section>
     </>

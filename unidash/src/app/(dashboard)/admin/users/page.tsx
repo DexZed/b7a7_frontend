@@ -1,221 +1,141 @@
 "use client";
 import { useSession } from "@/lib/authClient";
-import { getAllUsers } from "@/data access/adminData";
 import { useEffect, useState } from "react";
 import { User } from "@/lib/types";
 import { Info } from "lucide-react";
 import Link from "next/link";
-import SkeletonBanner, { SkeletonContent } from "@/components/skeletons";
+import PageHeading from "@/components/pageHeading";
+import SearchField from "@/components/searchField";
+import { GenericTable } from "@/components/table";
+import PaginationControls from "@/components/pagination";
+import { motion } from "motion/react";
+import { useUsers } from "@/hooks/use-admin-hooks";
 
 function AllUsers() {
   const { data: session } = useSession();
-  const [isLoading, setIsLoading] = useState(true);
+  const token = session?.session?.token as string;
+
+  // Query state parameters passed directly to the custom hook
   const [query, setQuery] = useState<{
-    page?: number;
-    limit?: number;
+    page: number;
+    limit: number;
     search?: string;
     role?: string;
   }>({ page: 1, limit: 10 });
 
-  const [users, setUsers] = useState<User[]>([]);
-  const [pagination, setPagination] = useState<{
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  }>({ page: 1, limit: 10, total: 0, totalPages: 1 });
-
   const [searchInput, setSearchInput] = useState("");
 
-  const [debouncedFilter, setDebouncedFilter] = useState("");
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      if (!session?.session?.token) return;
-      try {
-        setIsLoading(true);
-        const res = await getAllUsers(session.session.token as string, query);
-        setUsers(res.data);
-        if (res.pagination) {
-          setPagination(res.pagination);
-        }
-      } catch (error) {
-        console.error("Failed to fetch users:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchUsers();
-  }, [query, session]);
-
+  // Debounce search input to update query parameters smoothly
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedFilter(searchInput);
+      setQuery((prev) => ({
+        ...prev,
+        search: searchInput || undefined,
+        page: 1, // Reset to first page on search query change
+      }));
     }, 300);
 
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const filteredUsers = users?.filter((u) => {
-    if (!debouncedFilter) return true;
-    const term = debouncedFilter.toLowerCase();
-    return (
-      u.name?.toLowerCase().includes(term) ||
-      u.email?.toLowerCase().includes(term) ||
-      u.role?.toLowerCase().includes(term)
-    );
-  });
+  // Fetch users using the custom React Query hook
+  const { data: response, isLoading, isFetching } = useUsers(token, query);
 
-  const handleServerSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setQuery((prev) => ({
-      ...prev,
-      search: searchInput,
-      page: 1,
-    }));
+  const users = response?.data ?? [];
+  const pagination = response?.pagination ?? {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
   };
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > pagination.totalPages) return;
     setQuery((prev) => ({ ...prev, page: newPage }));
   };
-  if (isLoading) {
-    return (
-      <>
-        <SkeletonBanner />
-        <SkeletonContent width={"full"} height={"min-h-screen"} />
-      </>
-    );
-  }
+
+  const columns = [
+    {
+      key: "serial",
+      header: "#",
+      render: (_user: User, index: number) =>
+        (pagination.page - 1) * pagination.limit + index + 1,
+    },
+    {
+      key: "name",
+      header: "Name",
+      render: (user: User) => user.name,
+    },
+    {
+      key: "role",
+      header: "Role",
+      className: "capitalize",
+      render: (user: User) => user.role,
+    },
+    {
+      key: "email",
+      header: "Email",
+      className: "normal-case",
+      render: (user: User) => user.email,
+    },
+    {
+      key: "createdAt",
+      header: "Created At",
+      render: (user: User) => new Date(user.createdAt).toLocaleDateString(),
+    },
+    {
+      key: "updatedAt",
+      header: "Updated At",
+      render: (user: User) =>
+        user.updatedAt
+          ? new Date(user.updatedAt).toLocaleDateString()
+          : "Not Updated Yet",
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      render: (user: User) => (
+        <Link
+          href={`/admin/users/${user.id}`}
+          className="btn btn-ghost btn-outline btn-sm"
+          aria-label={`View ${user.name}`}
+        >
+          <Info size={16} />
+        </Link>
+      ),
+    },
+  ];
   return (
     <>
       <section className="flex flex-col gap-5 p-6">
-        <h1 className="text-3xl font-semibold">All Users</h1>
-        <form onSubmit={handleServerSearch} className="glass-morphism m-5 p-5">
-          <div className="glass-morphism m-5 p-5">
-            <div className="join">
-              <div>
-                <label className="input input-accent validator join-item">
-                  <svg
-                    className="h-[1em] opacity-50"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                  >
-                    <g
-                      strokeLinejoin="round"
-                      strokeLinecap="round"
-                      strokeWidth="2.5"
-                      fill="none"
-                      stroke="currentColor"
-                    >
-                      <circle cx="11" cy="11" r="8"></circle>
-                      <path d="m21 21-4.3-4.3"></path>
-                    </g>
-                  </svg>
-                  <input
-                    type="text"
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    placeholder="Search"
-                  />
-                </label>
-                <div className="validator-hint hidden">Start typing...</div>
-              </div>
-              <button
-                type="submit"
-                className="btn btn-accent btn-outline join-item"
-              >
-                Search
-              </button>
-            </div>
-          </div>
-        </form>
-        <div className="glass-morphism">
-          <div className="overflow-x-auto">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th></th>
-                  <th>Name</th>
-                  <th>Role</th>
-                  <th>Email</th>
-                  <th>Joined</th>
-                  <th>Updated</th>
-                  <th>Details</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers?.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="text-center py-4">
-                      No matching users found on this page.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredUsers?.map((u, i) => {
-                    const serialNumber =
-                      (pagination.page - 1) * pagination.limit + i + 1;
-                    return (
-                      <tr key={u.id}>
-                        <th>{serialNumber}</th>
-                        <td>{u.name}</td>
-                        <td className="capitalize">{u.role}</td>
-                        <td className="capitalize">{u.email}</td>
-                        <td>{new Date(u.createdAt).toLocaleDateString()}</td>
-                        <td>
-                          {u.updatedAt
-                            ? new Date(u.updatedAt).toLocaleDateString()
-                            : "Not Updated Yet"}
-                        </td>
-                        <td>
-                          <Link
-                            className="btn btn-ghost btn-outline"
-                            href={`/admin/users/${u.id}`}
-                          >
-                            <Info />
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+        <PageHeading title="All Users" />
+        <div className="glass-morphism m-5 p-5">
+          <SearchField
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
         </div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{
+            opacity: isFetching ? 0.5 : 1,
+          }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+        >
+          <GenericTable
+            columns={columns}
+            data={users}
+            getRowKey={(user) => user.id}
+            isLoading={isLoading}
+            emptyMessage="No matching users found."
+            skeletonRows={5}
+          />
+        </motion.div>
 
-        <div className="flex justify-center items-center gap-2">
-          <div className="join">
-            <button
-              type="button"
-              className="join-item btn btn-outline"
-              onClick={() => handlePageChange(pagination.page - 1)}
-              disabled={pagination.page <= 1}
-            >
-              «
-            </button>
-            <button
-              type="button"
-              className="join-item btn btn-outline btn-active"
-            >
-              {pagination.page}
-            </button>
-            <button
-              type="button"
-              className="join-item btn btn-outline btn-disabled"
-            >
-              of {pagination.totalPages || 1}
-            </button>
-            <button
-              type="button"
-              className="join-item btn btn-outline"
-              onClick={() => handlePageChange(pagination.page + 1)}
-              disabled={pagination.page >= pagination.totalPages}
-            >
-              »
-            </button>
-          </div>
-        </div>
+        <PaginationControls
+          handlePageChange={handlePageChange}
+          pagination={pagination}
+        />
       </section>
     </>
   );
