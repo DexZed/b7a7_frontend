@@ -1,137 +1,116 @@
 "use client";
 import { useSession } from "@/lib/authClient";
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { Info } from "lucide-react";
+import { useDeferredValue, useState, useTransition } from "react";
 import { Class } from "@/lib/types";
-import { getAllClasses } from "@/data access/teacherData";
-import SkeletonBanner, { SkeletonContent } from "@/components/skeletons";
 import ClassForm from "./_components/classForm";
+import SearchField from "@/components/searchField";
+import PageHeading from "@/components/pageHeading";
+import PaginationControls from "@/components/pagination";
+import { GenericTable } from "@/components/table";
+import { useClasses } from "@/hooks/uses-teacher-hooks";
+import { motion } from "motion/react";
+import { Info } from "lucide-react";
+import Link from "next/link";
 
-function ClassesPage() {
+export function ClassesPage() {
   const { data: session } = useSession();
-  const [isLoading, setIsLoading] = useState(true);
+  const token = session?.session?.token ?? "";
+
+  // 1. Unified query state for parameters
   const [query, setQuery] = useState<{
     page?: number;
     limit?: number;
     search?: string;
-    role?: string;
   }>({ page: 1, limit: 10 });
 
-  const [pagination, setPagination] = useState<{
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  }>({ page: 1, limit: 10, total: 0, totalPages: 1 });
-
   const [searchInput, setSearchInput] = useState("");
+  const [isPending, startTransition] = useTransition();
 
-  const [debouncedFilter, setDebouncedFilter] = useState("");
+  // 2. Defer search input to keep typing responsive
+  const deferredSearch = useDeferredValue(searchInput);
 
-  const [classes, setClasses] = useState<Class[]>([]);
+  // 3. Pass deferred search directly into query parameters
+  const activeQuery = {
+    ...query,
+    search: deferredSearch || undefined,
+  };
 
-  useEffect(() => {
-    const fetchClasses = async () => {
-      if (!session?.session?.token) return;
-      try {
-        setIsLoading(true);
-        const res = await getAllClasses(session.session.token as string, query);
-        setClasses(res.data);
-        if (res.pagination) {
-          setPagination(res.pagination);
-        }
-      } catch (error) {
-        console.error("Failed to fetch Classes:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchClasses();
-  }, [query, session]);
+  // 4. Fetch data natively via TanStack Query hook
+  const {
+    data: classesData,
+    isLoading,
+    isFetching,
+  } = useClasses(token, activeQuery);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedFilter(searchInput);
-    }, 300);
+  const classes = classesData?.data ?? [];
+  const pagination = classesData?.pagination ?? {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
+  };
 
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchInput(value);
 
-  const filteredClasses = classes?.filter((c) => {
-    if (!debouncedFilter) return true;
-    const term = debouncedFilter.toLowerCase();
-    return (
-      c?.name?.toLowerCase().includes(term) ||
-      c?.description?.toLowerCase().includes(term)
-    );
-  });
-
-  const handleServerSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setQuery((prev) => ({
-      ...prev,
-      search: searchInput,
-      page: 1,
-    }));
+    // Transition state update to keep the input fluid while filtering
+    startTransition(() => {
+      setQuery((prev) => ({ ...prev, search: value, page: 1 }));
+    });
   };
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > pagination.totalPages) return;
-    setQuery((prev) => ({ ...prev, page: newPage }));
+    startTransition(() => {
+      setQuery((prev) => ({ ...prev, page: newPage }));
+    });
   };
-  if (isLoading) {
-    return (
-      <>
-        <SkeletonBanner />
-        <SkeletonContent width={"full"} height={"min-h-screen"} />
-      </>
-    );
-  }
+
+  const columns = [
+    {
+      key: "serial",
+      header: "#",
+      render: (_: Class, index: number) =>
+        (query.page! - 1) * query.limit! + index + 1,
+    },
+    {
+      key: "name",
+      header: "Name",
+      render: (c: Class) => c.name,
+    },
+    {
+      key: "description",
+      header: "Description",
+      render: (c: Class) => c.description,
+    },
+    {
+      key: "createdAt",
+      header: "Created At",
+      render: (c: Class) => new Date(c.createdAt).toLocaleDateString(),
+    },
+    {
+      key: "details",
+      header: "Details",
+      render: (c: Class) => (
+        <Link
+          href={`/teacher/classes/${c.id}`}
+          className="btn btn-sm btn-ghost"
+        >
+          {" "}
+          <Info />
+        </Link>
+      ),
+    },
+  ];
+
   return (
     <>
       <section className="flex flex-col gap-5 p-6 min-h-screen">
-        <h1 className="text-3xl font-semibold">All Classes</h1>
-        <div className="flex justify-evenly items-center">
-          <form onSubmit={handleServerSearch}>
-            <div className="glass-morphism m-5 p-5">
-              <div className="join">
-                <div>
-                  <label className="input input-accent validator join-item">
-                    <svg
-                      className="h-[1em] opacity-50"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        strokeLinejoin="round"
-                        strokeLinecap="round"
-                        strokeWidth="2.5"
-                        fill="none"
-                        stroke="currentColor"
-                      >
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.3-4.3"></path>
-                      </g>
-                    </svg>
-                    <input
-                      type="text"
-                      value={searchInput}
-                      onChange={(e) => setSearchInput(e.target.value)}
-                      placeholder="Search"
-                    />
-                  </label>
-                  <div className="validator-hint hidden">Start typing...</div>
-                </div>
-                <button
-                  type="submit"
-                  className="btn btn-accent btn-outline join-item"
-                >
-                  Search
-                </button>
-              </div>
-            </div>
-          </form>
+        <PageHeading title="All Classes" />
+
+        <div className="flex justify-between items-center">
+          <SearchField value={searchInput} onChange={handleSearchChange} />
           <button
             onClick={() =>
               (
@@ -143,6 +122,7 @@ function ClassesPage() {
             Add A Class
           </button>
         </div>
+
         <dialog
           id="add-department"
           className="modal modal-bottom sm:modal-middle"
@@ -158,103 +138,27 @@ function ClassesPage() {
           </div>
         </dialog>
 
-        <div className="glass-morphism">
-          <div className="overflow-x-auto">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th></th>
-                  <th>Name</th>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{
+            opacity: isFetching || isPending ? 0.5 : 1,
+          }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+        >
+          <GenericTable
+            columns={columns}
+            data={classes}
+            getRowKey={(clas) => clas.id}
+            isLoading={isLoading || isFetching || isPending}
+            emptyMessage="No matching classes found."
+            skeletonRows={5}
+          />
+        </motion.div>
 
-                  <th>Description</th>
-
-                  <th>Created At</th>
-
-                  <th>Details</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredClasses?.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="text-center py-4">
-                      No matching classes found on this page.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredClasses?.map((c, i) => {
-                    const serialNumber =
-                      (pagination.page - 1) * pagination.limit + i + 1;
-                    return (
-                      <tr key={c.id}>
-                        <th>{serialNumber}</th>
-                        <td>{c.name}</td>
-
-                        <td>
-                          {c.description?.length > 50
-                            ? c.description.slice(0, 50) + "..."
-                            : c.description}
-                        </td>
-                        <td>{new Date(c.createdAt).toLocaleDateString()}</td>
-
-                        <td>
-                          <Link
-                            className="btn btn-ghost btn-outline"
-                            href={`/teacher/classes/${c.id}`}
-                          >
-                            <Info />
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className="flex justify-center items-center gap-2">
-          <div className="join">
-            <button
-              type="button"
-              className="join-item btn btn-outline"
-              onClick={() => handlePageChange(pagination.page - 1)}
-              disabled={pagination.page <= 1}
-            >
-              «
-            </button>
-            <button
-              type="button"
-              className="join-item btn btn-outline btn-active"
-            >
-              {pagination.page}
-            </button>
-            <button
-              type="button"
-              className="join-item btn btn-outline btn-disabled"
-            >
-              of {pagination.totalPages || 1}
-            </button>
-            <button
-              type="button"
-              className="join-item btn btn-outline"
-              disabled={pagination.page >= pagination.totalPages}
-              onClick={() => handlePageChange(pagination.page + 1)}
-            >
-              {pagination.page + 1 <= pagination.totalPages
-                ? pagination.page + 1
-                : pagination.page}
-            </button>
-            <button
-              type="button"
-              className="join-item btn btn-outline"
-              onClick={() => handlePageChange(pagination.page + 1)}
-              disabled={pagination.page >= pagination.totalPages}
-            >
-              »
-            </button>
-          </div>
-        </div>
+        <PaginationControls
+          handlePageChange={handlePageChange}
+          pagination={pagination}
+        />
       </section>
     </>
   );

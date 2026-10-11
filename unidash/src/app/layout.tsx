@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 
 import Footer from "@/components/footer";
 import "./custom.css";
+import Providers from "@/hooks/provider";
 export const metadata: Metadata = {
   title: "University Dashboard",
   description: "University Dashboard Management System",
@@ -41,7 +42,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             backgroundSize: "cover",
           }}
         >
-          <div>{children}</div>
+          <div>
+            <Providers>{children}</Providers>
+          </div>
           <Footer />
         </main>
       </body>

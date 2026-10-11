@@ -1,5 +1,5 @@
 "use client";
-import AnimeWrapper from "@/components/animationWrapper";
+
 import Navbar from "@/components/navbar";
 import PageHeading from "@/components/pageHeading";
 import { signIn } from "@/lib/authClient";
@@ -66,38 +66,37 @@ function GuestLogin() {
   return (
     <>
       <Navbar />
-      <AnimeWrapper>
-        <section className="min-h-screen flex flex-col gap-5 items-center p-5">
-          <PageHeading title="Select Role To Login" />
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-wrap justify-evenly gap-4 p-4"
-          >
-            {roles?.map((role, index) => (
-              <div
-                key={index}
-                className="card w-96 glass-morphism card-xl shadow-sm"
-              >
-                <div className="card-body ">
-                  <div className="flex flex-col justify-center items-center">
-                    <h2 className="card-title my-2">{role.name}</h2>
-                    <p className="my-2">{role.description}</p>
 
-                    <button
-                      onClick={() => handleGuestLogin(role.name)}
-                      className="btn btn-accent btn-outline w-full my-5"
-                    >
-                      Login
-                    </button>
-                  </div>
+      <section className="min-h-screen flex flex-col gap-5 items-center p-5">
+        <PageHeading title="Select Role To Login" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-wrap justify-evenly gap-4 p-4"
+        >
+          {roles?.map((role, index) => (
+            <div
+              key={index}
+              className="card w-96 glass-morphism card-xl shadow-sm"
+            >
+              <div className="card-body ">
+                <div className="flex flex-col justify-center items-center">
+                  <h2 className="card-title my-2">{role.name}</h2>
+                  <p className="my-2">{role.description}</p>
+
+                  <button
+                    onClick={() => handleGuestLogin(role.name)}
+                    className="btn btn-accent btn-outline w-full my-5"
+                  >
+                    Login
+                  </button>
                 </div>
               </div>
-            ))}
-          </motion.div>
-        </section>
-      </AnimeWrapper>
+            </div>
+          ))}
+        </motion.div>
+      </section>
     </>
   );
 }

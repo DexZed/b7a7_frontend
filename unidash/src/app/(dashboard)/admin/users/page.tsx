@@ -1,102 +1,59 @@
 "use client";
 import { useSession } from "@/lib/authClient";
-import { getAllUsers } from "@/data access/adminData";
 import { useEffect, useState } from "react";
 import { User } from "@/lib/types";
 import { Info } from "lucide-react";
 import Link from "next/link";
 import PageHeading from "@/components/pageHeading";
 import SearchField from "@/components/searchField";
-import FormBody from "@/components/form";
 import { GenericTable } from "@/components/table";
 import PaginationControls from "@/components/pagination";
 import { motion } from "motion/react";
-import AnimeWrapper from "@/components/animationWrapper";
+import { useUsers } from "@/hooks/use-admin-hooks";
 
 function AllUsers() {
   const { data: session } = useSession();
-  const [isLoading, setIsLoading] = useState(true);
+  const token = session?.session?.token as string;
+
+  // Query state parameters passed directly to the custom hook
   const [query, setQuery] = useState<{
-    page?: number;
-    limit?: number;
+    page: number;
+    limit: number;
     search?: string;
     role?: string;
   }>({ page: 1, limit: 10 });
 
-  const [users, setUsers] = useState<User[]>([]);
-  const [pagination, setPagination] = useState<{
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  }>({ page: 1, limit: 10, total: 0, totalPages: 1 });
-
   const [searchInput, setSearchInput] = useState("");
 
-  const [debouncedFilter, setDebouncedFilter] = useState("");
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      if (!session?.session?.token) return;
-      try {
-        setIsLoading(true);
-        const res = await getAllUsers(session.session.token as string, query);
-        setUsers(res.data);
-        if (res.pagination) {
-          setPagination(res.pagination);
-        }
-      } catch (error) {
-        console.error("Failed to fetch users:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchUsers();
-  }, [query, session]);
-
+  // Debounce search input to update query parameters smoothly
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedFilter(searchInput);
+      setQuery((prev) => ({
+        ...prev,
+        search: searchInput || undefined,
+        page: 1, // Reset to first page on search query change
+      }));
     }, 300);
 
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const [isFiltering, setIsFiltering] = useState(false);
+  // Fetch users using the custom React Query hook
+  const { data: response, isLoading, isFetching } = useUsers(token, query);
 
-  useEffect(() => {
-    setIsFiltering(true);
-
-    const timer = setTimeout(() => {
-      setDebouncedFilter(searchInput);
-      setIsFiltering(false);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchInput]);
-  const filteredUsers = users?.filter((u) => {
-    if (!debouncedFilter) return true;
-    const term = debouncedFilter.toLowerCase();
-    return (
-      u.name?.toLowerCase().includes(term) ||
-      u.email?.toLowerCase().includes(term) ||
-      u.role?.toLowerCase().includes(term)
-    );
-  });
-
-  const handleServerSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setQuery((prev) => ({
-      ...prev,
-      search: searchInput,
-      page: 1,
-    }));
+  const users = response?.data ?? [];
+  const pagination = response?.pagination ?? {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
   };
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > pagination.totalPages) return;
     setQuery((prev) => ({ ...prev, page: newPage }));
   };
+
   const columns = [
     {
       key: "serial",
@@ -152,27 +109,25 @@ function AllUsers() {
     <>
       <section className="flex flex-col gap-5 p-6">
         <PageHeading title="All Users" />
-        <FormBody onSubmit={handleServerSearch}>
-          <div className="glass-morphism m-5 p-5">
-            <SearchField
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-            />
-          </div>
-        </FormBody>
+        <div className="glass-morphism m-5 p-5">
+          <SearchField
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+        </div>
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{
-            opacity: isFiltering ? 0.5 : 1,
+            opacity: isFetching ? 0.5 : 1,
           }}
           transition={{ duration: 0.25, ease: "easeOut" }}
         >
           <GenericTable
             columns={columns}
-            data={filteredUsers ?? []}
+            data={users}
             getRowKey={(user) => user.id}
             isLoading={isLoading}
-            emptyMessage="No matching users found on this page."
+            emptyMessage="No matching users found."
             skeletonRows={5}
           />
         </motion.div>
