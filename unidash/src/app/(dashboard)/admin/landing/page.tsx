@@ -1,11 +1,12 @@
 "use client";
 import Banner from "@/components/banner";
-import AdminStats from "../_components/stats";
+
 import AdminCharts from "../_components/chart";
 import LatestStats from "../_components/latest";
 import { useSession } from "@/lib/authClient";
 import { redirect } from "next/navigation";
 import { SkeletonContent } from "@/components/skeletons";
+import { AdminStats } from "../_components/stats";
 
 type Props = {};
 
