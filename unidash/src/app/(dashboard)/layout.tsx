@@ -5,7 +5,7 @@ import {
   BookCopy,
   GraduationCap,
   House,
-  ScrollText,
+  Plus,
   University,
   Users,
 } from "lucide-react";
@@ -55,6 +55,11 @@ function layout({ children }: Props) {
           name: "subjects",
           href: "/teacher/subjects",
           icon: <BookCopy />,
+        },
+        {
+          name: "Add",
+          href: "/teacher/add",
+          icon: <Plus />,
         },
       ];
       break;

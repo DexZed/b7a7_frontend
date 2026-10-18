@@ -4,14 +4,20 @@ type Props = {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string;
+  placeholder?: string;
 };
 
-function SearchField({ value, onChange, className }: Props) {
+function SearchField({
+  value,
+  onChange,
+  className,
+  placeholder = "Search",
+}: Props) {
   return (
-    <div className={cn("glass-morphism", className)}>
+    <div className={cn("", className)}>
       <div className="join">
         <div>
-          <label className="input input-accent validator join-item">
+          <label className="input validator join-item glass-morphism">
             <svg
               className="h-[1em] opacity-50"
               xmlns="http://www.w3.org/2000/svg"
@@ -37,7 +43,10 @@ function SearchField({ value, onChange, className }: Props) {
           </label>
           <div className="validator-hint hidden">Start typing...</div>
         </div>
-        <button type="submit" className="btn btn-accent btn-outline join-item">
+        <button
+          type="submit"
+          className="btn btn-ghost btn-outline glass-morphism  ml-2"
+        >
           Search
         </button>
       </div>

@@ -2,7 +2,6 @@
 import { useSession } from "@/lib/authClient";
 import { useDeferredValue, useEffect, useState, useTransition } from "react";
 import { Department } from "@/lib/types";
-import DepartmentForm from "./_components/newDepartment";
 import Link from "next/link";
 import { Info } from "lucide-react";
 import { GenericTable } from "@/components/table";
@@ -114,34 +113,8 @@ export default function DepartmentsPage() {
   return (
     <section className="flex flex-col gap-5 p-6 min-h-screen">
       <PageHeading title="All Departments" />
-      <div className="flex justify-evenly items-center">
-        <SearchField value={searchInput} onChange={handleSearchChange} />
-        <button
-          onClick={() =>
-            (
-              document.getElementById("add-department") as HTMLDialogElement
-            )?.showModal()
-          }
-          className="btn btn-primary btn-outline"
-        >
-          Add A Department
-        </button>
-      </div>
 
-      <dialog
-        id="add-department"
-        className="modal modal-bottom sm:modal-middle"
-      >
-        <div className="modal-box">
-          <form method="dialog">
-            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
-              ✕
-            </button>
-          </form>
-          <h3 className="text-2xl font-semibold">Add New Department</h3>
-          <DepartmentForm />
-        </div>
-      </dialog>
+      <SearchField value={searchInput} onChange={handleSearchChange} />
 
       <motion.div
         initial={{ opacity: 0, y: 10 }}

@@ -2,7 +2,6 @@
 import { useSession } from "@/lib/authClient";
 import { useDeferredValue, useState, useTransition } from "react";
 import { Class } from "@/lib/types";
-import ClassForm from "./_components/classForm";
 import SearchField from "@/components/searchField";
 import PageHeading from "@/components/pageHeading";
 import PaginationControls from "@/components/pagination";
@@ -111,32 +110,7 @@ export function ClassesPage() {
 
         <div className="flex justify-between items-center">
           <SearchField value={searchInput} onChange={handleSearchChange} />
-          <button
-            onClick={() =>
-              (
-                document.getElementById("add-department") as HTMLDialogElement
-              )?.showModal()
-            }
-            className="btn btn-primary btn-outline"
-          >
-            Add A Class
-          </button>
         </div>
-
-        <dialog
-          id="add-department"
-          className="modal modal-bottom sm:modal-middle"
-        >
-          <div className="modal-box">
-            <form method="dialog">
-              <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
-                ✕
-              </button>
-            </form>
-            <h3 className="text-2xl font-semibold">Add New Class</h3>
-            <ClassForm />
-          </div>
-        </dialog>
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}

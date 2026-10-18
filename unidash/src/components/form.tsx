@@ -72,14 +72,10 @@ export function FormInput({
   );
 }
 
-export function FormErrors({ errors, name }: { errors: any; name: string }) {
+export function FormErrors({ errors }: { errors?: string }) {
   return (
     <>
-      {errors[name] && (
-        <span className="label text-red-500">
-          {String(errors[name]?.message)}
-        </span>
-      )}
+      {errors && <span className="label text-red-500">{String(errors)}</span>}
     </>
   );
 }
@@ -111,17 +107,51 @@ export function FormSelect({
         placeholder={placeholder}
         {...props}
       >
+        <option disabled defaultChecked>
+          {placeholder || "Select {name}"}
+        </option>
         {options?.map((option) => (
-          <>
-            <option disabled defaultChecked>
-              {placeholder || "Select {name}"}
-            </option>
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          </>
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
         ))}
       </select>
+    </>
+  );
+}
+type TextAreaProps = {
+  register: any;
+  name: string;
+  className?: string;
+  placeholder?: string;
+  rows?: number;
+  maxLength?: number;
+  label?: string;
+  props?: any;
+};
+export function FormTextArea({
+  register,
+  name,
+  className,
+  placeholder,
+  rows,
+  maxLength,
+  props,
+}: TextAreaProps) {
+  return (
+    <>
+      <label className="label" htmlFor={name}>
+        {name}
+      </label>
+      <textarea
+        {...register(name)}
+        name={name}
+        className={cn("textarea", className)}
+        placeholder={placeholder}
+        rows={rows}
+        maxLength={maxLength}
+        {...props}
+      />
     </>
   );
 }
