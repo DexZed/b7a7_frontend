@@ -42,6 +42,7 @@ export function FormFieldset({
 export function FormInput({
   register,
   name,
+  label,
   className,
   placeholder,
   type = "text",
@@ -57,8 +58,8 @@ export function FormInput({
 }) {
   return (
     <>
-      <label className="label" htmlFor={name}>
-        {name}
+      <label className="label m-1" htmlFor={name}>
+        {label}
       </label>
       <input
         {...register(name)}
@@ -83,12 +84,14 @@ export function FormErrors({ errors }: { errors?: string }) {
 export function FormSelect({
   register,
   name,
+  label,
   className,
   placeholder,
   options,
   ...props
 }: {
   register: any;
+  label?: string;
   name: string;
   className?: string;
   placeholder?: string;
@@ -97,21 +100,21 @@ export function FormSelect({
 }) {
   return (
     <>
-      <label className="label" htmlFor={name}>
-        {name}
+      <label className="label m-1" htmlFor={name}>
+        {label}
       </label>
       <select
         {...register(name)}
         name={name}
-        className={cn("select w-full", className)}
+        className={cn("select w-full glass-morphism", className)}
         placeholder={placeholder}
         {...props}
       >
-        <option disabled defaultChecked>
+        <option className="glass" disabled defaultChecked>
           {placeholder || "Select {name}"}
         </option>
         {options?.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option className="glass" key={option.value} value={option.value}>
             {option.label}
           </option>
         ))}
@@ -132,6 +135,7 @@ type TextAreaProps = {
 export function FormTextArea({
   register,
   name,
+  label,
   className,
   placeholder,
   rows,
@@ -141,7 +145,7 @@ export function FormTextArea({
   return (
     <>
       <label className="label" htmlFor={name}>
-        {name}
+        {label}
       </label>
       <textarea
         {...register(name)}

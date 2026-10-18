@@ -14,7 +14,7 @@ export const subjectSchema = z.object({
 });
 
 export const classSchema = z.object({
-  subjectId: z.coerce.number(),
+  subjectId: z.string().min(1, "Subject is required"),
   teacherId: z.string().min(1, "Teacher is required"),
   name: z.string().min(3, "Name must be at least 3 characters"),
   price: z.coerce.number().min(0, "Price must be positive"),
@@ -27,17 +27,16 @@ export const classSchema = z.object({
       day: z.string().min(1, "Day is required"),
       endTime: z.string().min(1, "End time is required"),
       startTime: z.string().min(1, "Start time is required"),
-      onlineMeetLink: z.string().url("Must be a valid URL"),
+      onlineMeetLink: z.url("Must be a valid URL"),
     }),
   ),
 });
 
-// Master schema combining all steps
-export const multiStepFormSchema = z.object({
-  department: departmentSchema,
-  subject: subjectSchema,
-  class: classSchema,
-});
+export type DepartmentInput = z.input<typeof departmentSchema>;
+export type DepartmentValues = z.output<typeof departmentSchema>;
 
-export type MultiFormInput = z.input<typeof multiStepFormSchema>;
-export type MultiFormValues = z.output<typeof multiStepFormSchema>;
+export type SubjectInput = z.input<typeof subjectSchema>;
+export type SubjectValues = z.output<typeof subjectSchema>;
+
+export type ClassInput = z.input<typeof classSchema>;
+export type ClassOutput = z.output<typeof classSchema>;

@@ -1,6 +1,7 @@
 import Swal from "sweetalert2";
 import { ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { DefaultValues } from "react-hook-form";
 
 // Success alert
 export function showSuccessAlert(title: string, text: string): void {
