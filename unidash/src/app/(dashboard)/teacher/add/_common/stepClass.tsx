@@ -10,8 +10,14 @@ import FormBody, {
 import { ClassOutput, classSchema } from "./multiStepTypes";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
+import { useSession } from "@/lib/authClient";
+import { showErrorAlert, showSuccessAlert } from "@/lib/utils";
+import { useCreateClass, useSubjects } from "@/hooks/uses-teacher-hooks";
 function StepClass() {
+  const { data: session } = useSession();
+  const token = session?.session?.token as string;
+  const { data: subjects } = useSubjects(token);
+  const { mutateAsync, isPending } = useCreateClass();
   const {
     register,
     handleSubmit,
@@ -20,6 +26,7 @@ function StepClass() {
   } = useForm({
     resolver: zodResolver(classSchema),
     defaultValues: {
+      teacherId: session?.user.id,
       name: "",
       description: "",
       price: 0,
@@ -36,8 +43,18 @@ function StepClass() {
       ],
     },
   });
-  const onSubmit = (data: ClassOutput) => {
-    console.log("Form submitted:", data);
+  const onSubmit = async (data: ClassOutput) => {
+    const mutationData = {
+      ...data,
+      subjectId: Number(data.subjectId),
+    };
+    try {
+      await mutateAsync({ classData: mutationData, token });
+      showSuccessAlert("Success", "Class added successfully");
+      reset();
+    } catch (error) {
+      showErrorAlert("Error", `Error occured: ${error}`);
+    }
   };
 
   const onInvalid = (errors: typeof FormError) => {
@@ -49,12 +66,15 @@ function StepClass() {
       <FormFieldset legend="Class Form" legendClassname="text-sm mb-5">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <FormInput
+            <FormSelect
               register={register}
               name="subjectId"
-              placeholder="Subject ID"
-              label="Subject ID"
-              type="text"
+              label="Subject"
+              options={subjects?.data?.map((subject) => ({
+                value: subject.id.toString(),
+                label: subject.name,
+              }))}
+              placeholder="Select Subject"
               className="glass-morphism"
             />
             <FormErrors errors={FormError?.subjectId?.message} />
@@ -151,14 +171,20 @@ function StepClass() {
           type="button"
           onClick={() => reset()}
           className="glass-morphism btn btn-ghost btn-outline"
+          disabled={isPending}
         >
           Reset
         </button>
         <button
           type="submit"
+          disabled={isPending}
           className="glass-morphism btn btn-ghost btn-outline"
         >
-          Submit
+          {isPending ? (
+            <span className="loading loading-dots loading-xl"></span>
+          ) : (
+            "Submit"
+          )}
         </button>
       </div>
     </FormBody>

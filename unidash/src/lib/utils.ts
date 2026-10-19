@@ -71,3 +71,17 @@ export function getInitials(name: string | undefined) {
   }
   return initials?.toUpperCase();
 }
+
+export function textTruncate(
+  text: string,
+  maxWords: number = 10,
+  suffix = "...",
+): string {
+  const words = text.split(" ");
+
+  if (words.length > maxWords) {
+    return words.slice(0, maxWords).join(" ") + suffix;
+  }
+
+  return text;
+}

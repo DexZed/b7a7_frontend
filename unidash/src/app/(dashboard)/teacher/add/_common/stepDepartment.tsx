@@ -9,8 +9,14 @@ import FormBody, {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { DepartmentInput, departmentSchema } from "./multiStepTypes";
+import { showErrorAlert, showSuccessAlert } from "@/lib/utils";
+import { useCreateDepartment } from "@/hooks/uses-teacher-hooks";
+import { useSession } from "@/lib/authClient";
 
 function StepDepartment() {
+  const { data: session } = useSession();
+  const token = session?.session?.token as string;
+  const { mutateAsync, isPending } = useCreateDepartment();
   const {
     register,
     handleSubmit,
@@ -24,8 +30,14 @@ function StepDepartment() {
       description: "",
     },
   });
-  const onSubmit = (data: DepartmentInput) => {
-    console.log(data);
+  const onSubmit = async (data: DepartmentInput) => {
+    try {
+      await mutateAsync({ department: data, token });
+      showSuccessAlert("Success", "Department added successfully");
+      reset();
+    } catch (error) {
+      showErrorAlert("Error", `Error occured: ${error}`);
+    }
   };
   const onInvalid = (error: typeof errors) => {
     console.log("Validation errors:", error);
@@ -69,14 +81,20 @@ function StepDepartment() {
             type="button"
             onClick={() => reset()}
             className="glass-morphism btn btn-ghost btn-outline"
+            disabled={isPending}
           >
             Reset
           </button>
           <button
             type="submit"
             className="glass-morphism btn btn-ghost btn-outline"
+            disabled={isPending}
           >
-            Submit
+            {isPending ? (
+              <span className="loading loading-dots loading-xl"></span>
+            ) : (
+              "Submit"
+            )}
           </button>
         </div>
       </FormBody>

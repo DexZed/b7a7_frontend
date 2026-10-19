@@ -10,6 +10,7 @@ import PageHeading from "@/components/pageHeading";
 import PaginationControls from "@/components/pagination";
 import SearchField from "@/components/searchField";
 import { useDepartments } from "@/hooks/uses-teacher-hooks";
+import { textTruncate } from "@/lib/utils";
 export default function DepartmentsPage() {
   const { data: session } = useSession();
   const token = session?.session?.token as string;
@@ -74,7 +75,14 @@ export default function DepartmentsPage() {
       key: "description",
       header: "Description",
       className: "normal-case",
-      render: (department: Department) => department.description,
+      render: (department: Department) => (
+        <div
+          className="tooltip tooltip-start md:tooltip-right md:tooltip-center"
+          data-tip={textTruncate(department.description)}
+        >
+          {textTruncate(department.description, 3)}
+        </div>
+      ),
     },
     {
       key: "createdAt",

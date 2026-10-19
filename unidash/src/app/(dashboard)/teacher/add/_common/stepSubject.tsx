@@ -3,13 +3,21 @@ import FormBody, {
   FormErrors,
   FormFieldset,
   FormInput,
+  FormSelect,
   FormTextArea,
 } from "@/components/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { subjectSchema, SubjectValues } from "./multiStepTypes";
+import { useCreateSubject, useDepartments } from "@/hooks/uses-teacher-hooks";
+import { useSession } from "@/lib/authClient";
+import { showErrorAlert, showSuccessAlert } from "@/lib/utils";
 
 function StepSubject() {
+  const { data: session } = useSession();
+  const token = session?.session?.token as string;
+  const { data: departments } = useDepartments(token);
+  const { mutateAsync, isPending } = useCreateSubject();
   const {
     register,
     handleSubmit,
@@ -23,8 +31,14 @@ function StepSubject() {
       description: "",
     },
   });
-  const onSubmit = (data: SubjectValues) => {
-    console.log(data);
+  const onSubmit = async (data: SubjectValues) => {
+    try {
+      await mutateAsync({ subjectData: data, token });
+      showSuccessAlert("Success", "Subject added successfully");
+      reset();
+    } catch (error) {
+      showErrorAlert("Error", `Error occured: ${error}`);
+    }
   };
   const onInvalid = (error: typeof errors) => {
     console.log("Validation errors:", error);
@@ -32,12 +46,17 @@ function StepSubject() {
   return (
     <FormBody onSubmit={handleSubmit(onSubmit, onInvalid)}>
       <FormFieldset legend="Subject Form" legendClassname="text-sm mb-5">
-        <FormInput
+        <FormSelect
           register={register}
           name="departmentId"
-          placeholder="Department ID"
-          label="Department ID"
-          type="number"
+          placeholder="Select Department"
+          label="Department"
+          options={
+            departments?.data?.map((department) => ({
+              value: department.id.toString(),
+              label: department.name,
+            })) || []
+          }
           className="glass-morphism"
         />
         <FormErrors errors={errors?.departmentId?.message} />
@@ -74,14 +93,20 @@ function StepSubject() {
           type="button"
           onClick={() => reset()}
           className="glass-morphism btn btn-ghost btn-outline"
+          disabled={isPending}
         >
           Reset
         </button>
         <button
           type="submit"
           className="glass-morphism btn btn-ghost btn-outline"
+          disabled={isPending}
         >
-          Submit
+          {isPending ? (
+            <span className="loading loading-dots loading-xl"></span>
+          ) : (
+            "Submit"
+          )}
         </button>
       </div>
     </FormBody>
