@@ -5,6 +5,12 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { signIn } from "@/lib/authClient";
 import { showErrorAlert, showSuccessAlert } from "@/lib/utils";
+import PageHeading from "@/components/pageHeading";
+import FormBody, {
+  FormErrors,
+  FormFieldset,
+  FormInput,
+} from "@/components/form";
 
 const signInSchema = z.object({
   email: z.string("Invalid email"),
@@ -16,7 +22,7 @@ function LoginPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<SignInSchema>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
@@ -67,53 +73,44 @@ function LoginPage() {
     <>
       <div className="glass-morphism max-w-md w-3xl p-5 flex flex-col gap-4">
         <div className="flex flex-col items-center gap-2">
-          <h1 className="text-2xl font-semibold">Login</h1>
+          <PageHeading title="Login" />
           <p className="text-muted-foreground">Welcome Back!</p>
         </div>
-        <div className="py-4 flex flex-col items-center justify-center">
-          <form onSubmit={handleSubmit(submitHandler)}>
-            <div className="flex flex-col justify-center items-center gap-2 pl-15 pb-7">
-              <fieldset className="fieldset w-96">
-                <legend className="fieldset-legend capitalize ">email</legend>
-                <input
-                  {...register("email")}
-                  name="email"
-                  type="text"
-                  className="input"
-                  placeholder="Enter Your Email"
-                />
-                {errors.email && (
-                  <span className="label text-red-500">
-                    {String(errors.email?.message)}
-                  </span>
+        <FormBody onSubmit={handleSubmit(submitHandler)}>
+          <FormFieldset legend="Login Form">
+            <FormInput
+              name="email"
+              type="email"
+              label="Email"
+              register={register}
+              placeholder="Enter Your Email"
+              className="glass-morphism"
+            />
+            <FormErrors errors={errors.email?.message} />
+            <FormInput
+              name="password"
+              type="password"
+              label="Password"
+              register={register}
+              placeholder="Enter Your Password"
+              className="glass-morphism"
+            />
+            <FormErrors errors={errors.password?.message} />
+            <div className="flex justify-end m-2">
+              <button
+                type="submit"
+                className="glass-morphism px-4 py-2"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <span className="loading loading-infinity loading-xl"></span>
+                ) : (
+                  "Submit"
                 )}
-              </fieldset>
-              <fieldset className="fieldset w-96">
-                <legend className="fieldset-legend capitalize ">
-                  password
-                </legend>
-                <input
-                  {...register("password")}
-                  name="password"
-                  type="password"
-                  className="input"
-                  placeholder="Enter Your Password"
-                />
-                {errors.password && (
-                  <span className="label text-red-500">
-                    {String(errors.password?.message)}
-                  </span>
-                )}
-              </fieldset>
-            </div>
-
-            <div className="flex justify-center">
-              <button type="submit" className="w-80 btn btn-info btn-outline">
-                Submit
               </button>
             </div>
-          </form>
-        </div>
+          </FormFieldset>
+        </FormBody>
       </div>
     </>
   );
