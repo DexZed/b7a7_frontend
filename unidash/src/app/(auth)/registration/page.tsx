@@ -5,6 +5,13 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { signUp } from "@/lib/authClient";
 import { showErrorAlert, showSuccessAlert } from "@/lib/utils";
+import PageHeading from "@/components/pageHeading";
+import FormBody, {
+  FormFieldset,
+  FormErrors,
+  FormInput,
+  FormSelect,
+} from "@/components/form";
 
 const signUpSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -19,7 +26,7 @@ function RegistrationPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<SignUpSchema>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -66,103 +73,75 @@ function RegistrationPage() {
     <>
       <div className="glass-morphism max-w-md w-3xl p-5 flex flex-col gap-4">
         <div className="flex flex-col items-center gap-2">
-          <h1 className="text-2xl font-semibold">Registration</h1>
+          <PageHeading title="Registration" />
           <p className="text-muted-foreground">
             Create a new account to get started.
           </p>
         </div>
-        <div className="py-4 flex flex-col items-center justify-center">
-          <form onSubmit={handleSubmit(submitHandler)}>
-            <div className="flex flex-col justify-center items-center gap-2 pl-15 pb-7">
-              <fieldset className="fieldset w-96">
-                <legend className="fieldset-legend capitalize ">
-                  First Name
-                </legend>
-                <input
-                  name="firstName"
-                  type="text"
-                  className="input"
-                  placeholder="Enter Your First Name"
-                />
-                {errors.firstName && (
-                  <span className="label text-red-500">
-                    {String(errors.firstName?.message)}
-                  </span>
+        <FormBody onSubmit={handleSubmit(submitHandler)}>
+          <FormFieldset legend="Registration Form">
+            <FormInput
+              name="firstName"
+              type="text"
+              label="First Name"
+              register={register}
+              placeholder="Enter Your First Name"
+              className="glass-morphism"
+            />
+            <FormErrors errors={errors.firstName?.message} />
+            <FormInput
+              name="lastName"
+              type="text"
+              label="Last Name"
+              register={register}
+              placeholder="Enter Your Last Name"
+              className="glass-morphism"
+            />
+            <FormErrors errors={errors.lastName?.message} />
+            <FormInput
+              name="email"
+              type="email"
+              label="Email"
+              register={register}
+              placeholder="Enter Your Email"
+              className="glass-morphism"
+            />
+            <FormErrors errors={errors.email?.message} />
+            <FormInput
+              name="password"
+              type="password"
+              label="Password"
+              register={register}
+              placeholder="Enter Your Password"
+              className="glass-morphism"
+            />
+            <FormErrors errors={errors.password?.message} />
+            <FormSelect
+              name="role"
+              label="Role"
+              register={register}
+              options={["admin", "teacher", "student"].map((r) => ({
+                label: r.charAt(0).toUpperCase() + r.slice(1),
+                value: r,
+              }))}
+              className="glass-morphism"
+            />
+            <FormErrors errors={errors.role?.message} />
+            <div className="flex justify-end m-2">
+              <button
+                type="submit"
+                className="glass-morphism px-4 py-2"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <span className="loading loading-infinity loading-xl"></span>
+                ) : (
+                  "Submit"
                 )}
-              </fieldset>
-              <fieldset className="fieldset w-96">
-                <legend className="fieldset-legend capitalize ">
-                  last Name
-                </legend>
-                <input
-                  name="lastName"
-                  type="text"
-                  className="input"
-                  placeholder="Enter Your Last Name"
-                />
-                {errors.lastName && (
-                  <span className="label text-red-500">
-                    {String(errors.lastName?.message)}
-                  </span>
-                )}
-              </fieldset>
-              <fieldset className="fieldset w-96">
-                <legend className="fieldset-legend capitalize ">email</legend>
-                <input
-                  name="email"
-                  type="text"
-                  className="input"
-                  placeholder="Enter Your Email"
-                />
-                {errors.email && (
-                  <span className="label text-red-500">
-                    {String(errors.email?.message)}
-                  </span>
-                )}
-              </fieldset>
-              <fieldset className="fieldset w-96">
-                <legend className="fieldset-legend capitalize ">
-                  password
-                </legend>
-                <input
-                  name="password"
-                  type="password"
-                  className="input"
-                  placeholder="Enter Your Password"
-                />
-                {errors.password && (
-                  <span className="label text-red-500">
-                    {String(errors.password?.message)}
-                  </span>
-                )}
-              </fieldset>
-              <fieldset className="fieldset w-96">
-                <legend className="fieldset-legend capitalize ">role</legend>
-                <select
-                  defaultValue="student"
-                  {...register("role")}
-                  className="select"
-                >
-                  <option disabled={true}>Select a role</option>
-                  <option value="admin">Admin</option>
-                  <option value="teacher">Teacher</option>
-                  <option value="student">Student</option>
-                </select>
-                {errors.role && (
-                  <span className="label text-red-500">
-                    {String(errors.role?.message)}
-                  </span>
-                )}
-              </fieldset>
-            </div>
-
-            <div className="flex justify-center">
-              <button type="submit" className="w-80 btn btn-info btn-outline">
-                Submit
               </button>
             </div>
-          </form>
-        </div>
+          </FormFieldset>
+        </FormBody>
       </div>
     </>
   );
