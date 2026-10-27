@@ -26,13 +26,13 @@ function Tabs<T extends string>({
           <input
             type="radio"
             name="department_details_tabs"
-            className="tab"
+            className="tab glass-morphism"
             aria-label={tab.label}
             defaultChecked={tab.defaultChecked}
             onChange={() => setActiveTab(tab.label)}
           />
 
-          <div className="tab-content glass-morphism border-base-300 p-6">
+          <div className="tab-content  p-6">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{
