@@ -3,6 +3,7 @@ import UserAvatarNav, { DrawerAvatar } from "@/components/userAvatar";
 import { useSession } from "@/lib/authClient";
 import {
   BookCopy,
+  Clock,
   GraduationCap,
   House,
   Plus,
@@ -68,12 +69,12 @@ function layout({ children }: Props) {
         {
           name: "landing",
           href: "/student/landing",
-          icon: null,
+          icon: <House />,
         },
         {
-          name: "placeholder",
-          href: "#",
-          icon: null,
+          name: "History",
+          href: "/student/history",
+          icon: <Clock />,
         },
       ];
       break;
