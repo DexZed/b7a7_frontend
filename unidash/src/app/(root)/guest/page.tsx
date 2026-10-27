@@ -87,7 +87,7 @@ function GuestLogin() {
 
                   <button
                     onClick={() => handleGuestLogin(role.name)}
-                    className="btn btn-accent btn-outline w-full my-5"
+                    className="btn btn-ghost btn-outline w-full my-5 glass-morphism"
                   >
                     Login
                   </button>

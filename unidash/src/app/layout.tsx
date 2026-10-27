@@ -23,23 +23,24 @@ const libreBaskerville = localFont({
     },
   ],
   variable: "--font-libreBaskerville",
+  display: "swap",
 });
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${libreBaskerville.className} h-full antialiased`}
+      className={`${libreBaskerville.variable} h-full antialiased`}
     >
       <body>
         <main
-          className="min-h-screen overlay"
+          className="min-h-screen overlay background-fade"
           style={{
             backgroundImage: "url(/bg-2.jpg)",
             objectFit: "cover",
             backgroundRepeat: "no-repeat",
-            backgroundPosition: "center center",
-            backgroundSize: "cover",
+            backgroundPosition: "top center",
+            backgroundSize: "contain",
           }}
         >
           <div>
