@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { DepartmentInput, departmentSchema } from "./multiStepTypes";
 import { showErrorAlert, showSuccessAlert } from "@/lib/utils";
-import { useCreateDepartment } from "@/hooks/uses-teacher-hooks";
+import { useCreateDepartment } from "@/hooks/use-teacher-hooks";
 import { useSession } from "@/lib/authClient";
 
 function StepDepartment() {

@@ -3,7 +3,7 @@ import GenericList from "@/components/genericList";
 import PageHeading from "@/components/pageHeading";
 import { GenericTable } from "@/components/table";
 import Tabs from "@/components/tabs";
-import { useClassById, useClassStudents } from "@/hooks/uses-teacher-hooks";
+import { useClassById, useClassStudents } from "@/hooks/use-teacher-hooks";
 
 import { useSession } from "@/lib/authClient";
 import { Schedules, User } from "@/lib/types";

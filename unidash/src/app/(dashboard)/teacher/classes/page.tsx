@@ -6,7 +6,7 @@ import SearchField from "@/components/searchField";
 import PageHeading from "@/components/pageHeading";
 import PaginationControls from "@/components/pagination";
 import { GenericTable } from "@/components/table";
-import { useClasses } from "@/hooks/uses-teacher-hooks";
+import { useClasses } from "@/hooks/use-teacher-hooks";
 import { motion } from "motion/react";
 import { Info } from "lucide-react";
 import Link from "next/link";

@@ -6,7 +6,7 @@ import {
   useDepartmentClasses,
   useDepartmentSubjects,
   useDepartmentUsers,
-} from "@/hooks/uses-teacher-hooks";
+} from "@/hooks/use-teacher-hooks";
 import { useSession } from "@/lib/authClient";
 import { ClassesFullSchema, Subject, User } from "@/lib/types";
 import { useParams } from "next/navigation";

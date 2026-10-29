@@ -9,7 +9,7 @@ import FormBody, {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { subjectSchema, SubjectValues } from "./multiStepTypes";
-import { useCreateSubject, useDepartments } from "@/hooks/uses-teacher-hooks";
+import { useCreateSubject, useDepartments } from "@/hooks/use-teacher-hooks";
 import { useSession } from "@/lib/authClient";
 import { showErrorAlert, showSuccessAlert } from "@/lib/utils";
 

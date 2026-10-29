@@ -1,55 +1,80 @@
-type Props = {
-  handlePageChange: (newPage: number) => void;
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
+type PaginationControlsProps = {
+  firstPage: () => void;
+  previousPage: () => void;
+  nextPage: () => void;
+  lastPage: () => void;
+  pageItems: (number | "...")[];
+  page: number;
+  totalPages: number;
+  goToPage: (page: number) => void;
 };
-
-function PaginationControls({ handlePageChange, pagination }: Props) {
+export function PaginationControls({
+  firstPage,
+  previousPage,
+  nextPage,
+  lastPage,
+  pageItems,
+  page,
+  totalPages,
+  goToPage,
+}: PaginationControlsProps) {
   return (
-    <div className="flex justify-center items-center gap-2">
-      <div className="join">
+    <>
+      <div className="join inline-flex">
         <button
-          type="button"
-          className="join-item btn btn-outline"
-          onClick={() => handlePageChange(pagination.page - 1)}
-          disabled={pagination.page <= 1}
+          className="join-item btn glass-morphism"
+          onClick={firstPage}
+          disabled={page === 1}
         >
-          «
+          {"<<"}
         </button>
-        <button type="button" className="join-item btn btn-outline btn-active">
-          {pagination.page}
-        </button>
+
         <button
-          type="button"
-          className="join-item btn btn-outline btn-disabled"
+          className="join-item btn glass-morphism"
+          onClick={previousPage}
+          disabled={page === 1}
         >
-          of {pagination.totalPages || 1}
+          {"<"}
         </button>
+
+        {pageItems.map((item, index) =>
+          item === "..." ? (
+            <button
+              key={`ellipsis-${index}`}
+              className="join-item btn btn-disabled glass-morphism"
+              disabled
+            >
+              ...
+            </button>
+          ) : (
+            <button
+              key={item}
+              className={`join-item btn glass-morphism ${page === item ? "btn-active " : ""}`}
+              onClick={() => goToPage(item)}
+              aria-current={page === item ? "page" : undefined}
+              disabled={page === item ? true : false}
+            >
+              {item}
+            </button>
+          ),
+        )}
+
         <button
-          type="button"
-          className="join-item btn btn-outline"
-          disabled={pagination.page >= pagination.totalPages}
-          onClick={() => handlePageChange(pagination.page + 1)}
+          className="join-item btn glass-morphism"
+          onClick={nextPage}
+          disabled={page >= totalPages || totalPages === 0}
         >
-          {pagination.page + 1 <= pagination.totalPages
-            ? pagination.page + 1
-            : pagination.page}
+          {">"}
         </button>
+
         <button
-          type="button"
-          className="join-item btn btn-outline"
-          onClick={() => handlePageChange(pagination.page + 1)}
-          disabled={pagination.page >= pagination.totalPages}
+          className="join-item btn glass-morphism"
+          onClick={lastPage}
+          disabled={page >= totalPages || totalPages === 0}
         >
-          »
+          {">>"}
         </button>
       </div>
-    </div>
+    </>
   );
 }
-
-export default PaginationControls;

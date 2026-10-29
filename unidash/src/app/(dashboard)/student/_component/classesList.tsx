@@ -1,10 +1,13 @@
 "use client";
 
 import PageHeading from "@/components/pageHeading";
-import PaginationControls from "@/components/pagination";
+import { PaginationControls } from "@/components/pagination";
+
 import SearchField from "@/components/searchField";
 import { GenericTable } from "@/components/table";
-import { useClasses } from "@/hooks/uses-teacher-hooks";
+import { usePagination } from "@/hooks/use-pagination";
+import { useUnenrolledClasses } from "@/hooks/use-student-hooks";
+import { useClasses } from "@/hooks/use-teacher-hooks";
 import { useSession } from "@/lib/authClient";
 import { Class } from "@/lib/types";
 import { Info } from "lucide-react";
@@ -16,34 +19,28 @@ function ClassesList() {
   const { data: session } = useSession();
   const token = session?.session?.token ?? "";
 
-  // 1. Unified query state for parameters
-  const [query, setQuery] = useState<{
-    page?: number;
-    limit?: number;
-    search?: string;
-  }>({ page: 1, limit: 10 });
+  const [query, setQuery] = useState({
+    page: 1,
+    limit: 10,
+  });
 
   const [searchInput, setSearchInput] = useState("");
   const [isPending, startTransition] = useTransition();
-
-  // 2. Defer search input to keep typing responsive
   const deferredSearch = useDeferredValue(searchInput);
 
-  // 3. Pass deferred search directly into query parameters
   const activeQuery = {
     ...query,
     search: deferredSearch || undefined,
   };
 
-  // 4. Fetch data natively via TanStack Query hook
   const {
-    data: classesData,
+    data: unenrolledClassesData,
     isLoading,
     isFetching,
-  } = useClasses(token, activeQuery);
+  } = useUnenrolledClasses(token, activeQuery);
 
-  const classes = classesData?.data ?? [];
-  const pagination = classesData?.pagination ?? {
+  const classes = unenrolledClassesData?.data ?? [];
+  const pagination = unenrolledClassesData?.pagination ?? {
     page: 1,
     limit: 10,
     total: 0,
@@ -51,21 +48,33 @@ function ClassesList() {
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchInput(value);
+    setSearchInput(e.target.value);
 
-    // Transition state update to keep the input fluid while filtering
     startTransition(() => {
-      setQuery((prev) => ({ ...prev, search: value, page: 1 }));
+      setQuery((prev) => ({
+        ...prev,
+        page: 1,
+      }));
     });
   };
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > pagination.totalPages) return;
+
     startTransition(() => {
-      setQuery((prev) => ({ ...prev, page: newPage }));
+      setQuery((prev) => ({
+        ...prev,
+        page: newPage,
+      }));
     });
   };
+
+  const { pageItems, goToPage, firstPage, lastPage, previousPage, nextPage } =
+    usePagination({
+      page: pagination.page,
+      totalPages: pagination.totalPages,
+      setPage: handlePageChange,
+    });
 
   const columns = [
     {
@@ -104,7 +113,7 @@ function ClassesList() {
   return (
     <>
       <article className="flex flex-col justify-center items-center p-4">
-        <PageHeading title="Classes List" />
+        <PageHeading title="Available Classes" />
         <aside className="w-full flex flex-col gap-4">
           <SearchField value={searchInput} onChange={handleSearchChange} />
 
@@ -125,10 +134,18 @@ function ClassesList() {
             />
           </motion.div>
 
-          <PaginationControls
-            handlePageChange={handlePageChange}
-            pagination={pagination}
-          />
+          <div className="flex justify-center items-center">
+            <PaginationControls
+              firstPage={firstPage}
+              previousPage={previousPage}
+              nextPage={nextPage}
+              lastPage={lastPage}
+              pageItems={pageItems}
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              goToPage={goToPage}
+            />
+          </div>
         </aside>
       </article>
     </>

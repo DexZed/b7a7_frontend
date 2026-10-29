@@ -12,7 +12,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "@/lib/authClient";
 import { showErrorAlert, showSuccessAlert } from "@/lib/utils";
-import { useCreateClass, useSubjects } from "@/hooks/uses-teacher-hooks";
+import { useCreateClass, useSubjects } from "@/hooks/use-teacher-hooks";
 function StepClass() {
   const { data: session } = useSession();
   const token = session?.session?.token as string;

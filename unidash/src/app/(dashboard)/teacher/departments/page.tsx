@@ -9,7 +9,7 @@ import { motion } from "motion/react";
 import PageHeading from "@/components/pageHeading";
 import PaginationControls from "@/components/pagination";
 import SearchField from "@/components/searchField";
-import { useDepartments } from "@/hooks/uses-teacher-hooks";
+import { useDepartments } from "@/hooks/use-teacher-hooks";
 import { textTruncate } from "@/lib/utils";
 export default function DepartmentsPage() {
   const { data: session } = useSession();
