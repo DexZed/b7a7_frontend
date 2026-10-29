@@ -85,3 +85,37 @@ export function textTruncate(
 
   return text;
 }
+
+type ColumnConfig<T> = {
+  header?: string;
+  className?: string;
+  render?: (item: T, index: number) => React.ReactNode;
+};
+
+export function createColumns<T extends object>(
+  data: T[],
+  config: Partial<Record<keyof T, ColumnConfig<T>>> = {},
+   exclude: (keyof T)[] = []
+) {
+  const firstItem = data[0];
+
+  if (!firstItem) return [];
+
+  return Object.keys(firstItem).filter((key) => !exclude.includes(key as keyof T)).map((key) => {
+    const typedKey = key as keyof T;
+    const custom = config[typedKey];
+
+    return {
+      key,
+      header:
+        custom?.header ??
+        key
+          .replace(/([A-Z])/g, " $1")
+          .replace(/^./, (char) => char.toUpperCase()),
+      className: custom?.className,
+      render:
+        custom?.render ??
+        ((item: T) => String(item[typedKey] ?? "N/A")),
+    };
+  });
+}
