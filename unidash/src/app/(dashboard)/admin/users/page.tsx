@@ -1,46 +1,39 @@
 "use client";
 import { useSession } from "@/lib/authClient";
-import { useEffect, useState } from "react";
+import { useDeferredValue, useEffect, useState, useTransition } from "react";
 import { User } from "@/lib/types";
 import { Info } from "lucide-react";
 import Link from "next/link";
 import PageHeading from "@/components/pageHeading";
 import SearchField from "@/components/searchField";
 import { GenericTable } from "@/components/table";
-import PaginationControls from "@/components/pagination";
 import { motion } from "motion/react";
 import { useUsers } from "@/hooks/use-admin-hooks";
+import { PaginationControls } from "@/components/pagination";
+import { usePagination } from "@/hooks/use-pagination";
 
 function AllUsers() {
   const { data: session } = useSession();
   const token = session?.session?.token as string;
 
-  // Query state parameters passed directly to the custom hook
-  const [query, setQuery] = useState<{
-    page: number;
-    limit: number;
-    search?: string;
-    role?: string;
-  }>({ page: 1, limit: 10 });
+  const [query, setQuery] = useState({
+    page: 1,
+    limit: 10,
+  });
 
   const [searchInput, setSearchInput] = useState("");
+  const [isPending, startTransition] = useTransition();
+  const deferredSearch = useDeferredValue(searchInput);
+  const activeQuery = {
+    ...query,
+    search: deferredSearch || undefined,
+  };
 
-  // Debounce search input to update query parameters smoothly
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setQuery((prev) => ({
-        ...prev,
-        search: searchInput || undefined,
-        page: 1, // Reset to first page on search query change
-      }));
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchInput]);
-
-  // Fetch users using the custom React Query hook
-  const { data: response, isLoading, isFetching } = useUsers(token, query);
-
+  const {
+    data: response,
+    isLoading,
+    isFetching,
+  } = useUsers(token, activeQuery);
   const users = response?.data ?? [];
   const pagination = response?.pagination ?? {
     page: 1,
@@ -49,11 +42,33 @@ function AllUsers() {
     totalPages: 1,
   };
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage < 1 || newPage > pagination.totalPages) return;
-    setQuery((prev) => ({ ...prev, page: newPage }));
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchInput(e.target.value);
+
+    startTransition(() => {
+      setQuery((prev) => ({
+        ...prev,
+        page: 1,
+      }));
+    });
   };
 
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > pagination.totalPages) return;
+
+    startTransition(() => {
+      setQuery((prev) => ({
+        ...prev,
+        page: newPage,
+      }));
+    });
+  };
+  const { pageItems, goToPage, firstPage, lastPage, previousPage, nextPage } =
+    usePagination({
+      page: pagination.page,
+      totalPages: pagination.totalPages,
+      setPage: handlePageChange,
+    });
   const columns = [
     {
       key: "serial",
@@ -110,15 +125,12 @@ function AllUsers() {
       <section className="flex flex-col gap-5 p-6">
         <PageHeading title="All Users" />
         <div className="glass-morphism m-5 p-5">
-          <SearchField
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-          />
+          <SearchField value={searchInput} onChange={handleSearchChange} />
         </div>
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{
-            opacity: isFetching ? 0.5 : 1,
+            opacity: isFetching || isPending ? 0.5 : 1,
           }}
           transition={{ duration: 0.25, ease: "easeOut" }}
         >
@@ -133,8 +145,14 @@ function AllUsers() {
         </motion.div>
 
         <PaginationControls
-          handlePageChange={handlePageChange}
-          pagination={pagination}
+          firstPage={firstPage}
+          previousPage={previousPage}
+          nextPage={nextPage}
+          lastPage={lastPage}
+          pageItems={pageItems}
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          goToPage={goToPage}
         />
       </section>
     </>

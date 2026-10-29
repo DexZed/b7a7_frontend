@@ -1,15 +1,19 @@
 "use client";
 
 import PageHeading from "@/components/pageHeading";
-import PaginationControls from "@/components/pagination";
+import { PaginationControls } from "@/components/pagination";
+
 import { GenericTable } from "@/components/table";
+import Tabs from "@/components/tabs";
 import { useUserDepartments, useUserSubjects } from "@/hooks/use-admin-hooks";
+import { usePagination } from "@/hooks/use-pagination";
 import { useSession } from "@/lib/authClient";
 import { Department, Subject } from "@/lib/types";
+import { createColumns, textTruncate } from "@/lib/utils";
 import { motion } from "motion/react";
 import { useParams, useRouter } from "next/navigation";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 export default function UserDetailsPage() {
   const router = useRouter();
@@ -24,22 +28,20 @@ export default function UserDetailsPage() {
     return null;
   }
 
-  const [activeTab, setActiveTab] = useState<"departments" | "subjects">(
-    "departments",
+  const [activeTab, setActiveTab] = useState<"Departments" | "Subjects">(
+    "Departments",
   );
 
-  // Independent query states for tabs
   const [deptQuery, setDeptQuery] = useState({ page: 1, limit: 10 });
   const [subjectQuery, setSubjectQuery] = useState({ page: 1, limit: 10 });
+  const [isPending, startTransition] = useTransition();
 
-  // Fetch departments data using React Query
   const {
     data: deptResponse,
     isLoading: isDeptLoading,
     isFetching: isDeptFetching,
   } = useUserDepartments(token, id, deptQuery);
 
-  // Fetch subjects data using React Query
   const {
     data: subjectResponse,
     isLoading: isSubjectLoading,
@@ -64,13 +66,52 @@ export default function UserDetailsPage() {
 
   const handleDeptPageChange = (newPage: number) => {
     if (newPage < 1 || newPage > deptPagination.totalPages) return;
-    setDeptQuery((prev) => ({ ...prev, page: newPage }));
+
+    startTransition(() => {
+      setDeptQuery((prev) => ({
+        ...prev,
+        page: newPage,
+      }));
+    });
   };
+
+  const {
+    pageItems: dpageItems,
+    goToPage: dgoToPage,
+    firstPage: dfirstPage,
+    lastPage: dlastPage,
+    previousPage: dpreviousPage,
+    nextPage: dnextPage,
+  } = usePagination({
+    page: deptPagination.page,
+    totalPages: deptPagination.totalPages,
+    setPage: handleDeptPageChange,
+    siblingCount: 1,
+    boundaryCount: depts.length > 5 ? 1 : 0,
+  });
 
   const handleSubjectPageChange = (newPage: number) => {
     if (newPage < 1 || newPage > subjectPagination.totalPages) return;
-    setSubjectQuery((prev) => ({ ...prev, page: newPage }));
+
+    startTransition(() => {
+      setSubjectQuery((prev) => ({ ...prev, page: newPage }));
+    });
   };
+
+  const {
+    pageItems: sPageItems,
+    goToPage: sGoToPage,
+    firstPage: sFirstPage,
+    lastPage: sLastPage,
+    previousPage: sPreviousPage,
+    nextPage: sNextPage,
+  } = usePagination({
+    page: subjectPagination.page,
+    totalPages: subjectPagination.totalPages,
+    setPage: handleSubjectPageChange,
+    siblingCount: 1,
+    boundaryCount: subjects.length > 5 ? 1 : 0,
+  });
 
   const columnsDept = [
     {
@@ -79,37 +120,20 @@ export default function UserDetailsPage() {
       render: (_dept: Department, index: number) =>
         (deptPagination.page - 1) * deptPagination.limit + index + 1,
     },
-    {
-      key: "name",
-      header: "Name",
-      render: (dept: Department) => dept.name,
-    },
-    {
-      key: "code",
-      header: "Code",
-      className: "capitalize",
-      render: (dept: Department) => dept.code,
-    },
-    {
-      key: "description",
-      header: "Description",
-      className: "normal-case",
-      render: (dept: Department) => dept.description,
-    },
-    {
-      key: "createdAt",
-      header: "Created At",
-      render: (dept: Department) =>
-        new Date(dept.createdAt).toLocaleDateString(),
-    },
-    {
-      key: "updatedAt",
-      header: "Updated At",
-      render: (dept: Department) =>
-        dept.updatedAt
-          ? new Date(dept.updatedAt).toLocaleDateString()
-          : "Not Updated Yet",
-    },
+    ...createColumns<Department>(depts, {
+      description: {
+        render: (dept) => textTruncate(dept.description),
+      },
+      createdAt: {
+        render: (dept) => new Date(dept.createdAt).toLocaleDateString(),
+      },
+      updatedAt: {
+        render: (dept) =>
+          dept.updatedAt
+            ? new Date(dept.updatedAt).toLocaleDateString()
+            : "Not Updated Yet",
+      },
+    }),
   ];
 
   const columnsSubjects = [
@@ -119,120 +143,93 @@ export default function UserDetailsPage() {
       render: (_sub: Subject, index: number) =>
         (subjectPagination.page - 1) * subjectPagination.limit + index + 1,
     },
-    {
-      key: "name",
-      header: "Name",
-      render: (sub: Subject) => sub.name,
-    },
-    {
-      key: "code",
-      header: "Code",
-      className: "capitalize",
-      render: (sub: Subject) => sub.code,
-    },
-    {
-      key: "departmentName",
-      header: "Department Name",
-      className: "normal-case",
-      render: (sub: Subject) => sub.department?.name ?? "N/A",
-    },
-    {
-      key: "description",
-      header: "Description",
-      render: (sub: Subject) =>
-        sub.description?.length > 30
-          ? sub.description.slice(0, 30) + "..."
-          : sub.description,
-    },
-    {
-      key: "createdAt",
-      header: "Created At",
-      render: (sub: Subject) => new Date(sub.createdAt).toLocaleDateString(),
-    },
-    {
-      key: "updatedAt",
-      header: "Updated At",
-      render: (sub: Subject) =>
-        sub.updatedAt
-          ? new Date(sub.updatedAt).toLocaleDateString()
-          : "Not Updated Yet",
-    },
+    ...createColumns<Subject>(
+      subjects,
+      {
+        description: {
+          render: (sub) => textTruncate(sub.description),
+        },
+        createdAt: {
+          render: (sub) => new Date(sub.createdAt).toLocaleDateString(),
+        },
+        updatedAt: {
+          render: (sub) =>
+            sub.updatedAt
+              ? new Date(sub.updatedAt).toLocaleDateString()
+              : "Not Updated Yet",
+        },
+      },
+      ["department"],
+    ),
   ];
 
   return (
     <section className="flex min-h-screen flex-col gap-3 p-6">
       <PageHeading title={`User ${id?.slice(0, 4)}... Details`} />
 
-      <div>
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25, ease: "easeOut" }}
-        >
-          <div className="tabs tabs-lift">
-            <input
-              type="radio"
-              name="user_details_tabs"
-              className="tab"
-              aria-label="Departments"
-              defaultChecked
-              onChange={() => setActiveTab("departments")}
-            />
-            <div className="tab-content glass-morphism border-base-300 p-6">
-              <div className="flex flex-col gap-5">
-                <motion.div
-                  animate={{ opacity: isDeptFetching ? 0.6 : 1 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <GenericTable
-                    columns={columnsDept}
-                    data={depts}
-                    getRowKey={(dept) => dept.id}
-                    isLoading={isDeptLoading}
-                    emptyMessage="No departments found for this user."
-                    skeletonRows={5}
-                  />
-                </motion.div>
-
+      <Tabs
+        tabItems={[
+          {
+            label: "Departments",
+            defaultChecked: true,
+          },
+          {
+            label: "Subjects",
+          },
+        ]}
+        setActiveTab={(tab) => setActiveTab(tab)}
+        tabContent={{
+          Departments: (
+            <>
+              <GenericTable
+                columns={columnsDept}
+                data={depts}
+                getRowKey={(dept) => dept.id}
+                isLoading={isDeptLoading || isDeptFetching}
+                emptyMessage="No departments found for this user."
+                skeletonRows={5}
+              />
+              <div className="flex flex-col justify-center items-center mt-2">
                 <PaginationControls
-                  handlePageChange={handleDeptPageChange}
-                  pagination={deptPagination}
+                  firstPage={dfirstPage}
+                  previousPage={dpreviousPage}
+                  nextPage={dnextPage}
+                  lastPage={dlastPage}
+                  pageItems={dpageItems}
+                  page={deptPagination.page}
+                  totalPages={deptPagination.totalPages}
+                  goToPage={dgoToPage}
                 />
               </div>
-            </div>
-
-            <input
-              type="radio"
-              name="user_details_tabs"
-              className="tab"
-              aria-label="Subjects"
-              onChange={() => setActiveTab("subjects")}
-            />
-            <div className="tab-content glass-morphism border-base-300 p-6">
-              <div className="flex flex-col gap-5">
-                <motion.div
-                  animate={{ opacity: isSubjectFetching ? 0.6 : 1 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <GenericTable
-                    columns={columnsSubjects}
-                    data={subjects}
-                    getRowKey={(subject) => subject.id}
-                    isLoading={isSubjectLoading}
-                    emptyMessage="No subjects found for this user."
-                    skeletonRows={5}
-                  />
-                </motion.div>
-
+            </>
+          ),
+          Subjects: (
+            <>
+              <GenericTable
+                columns={columnsSubjects}
+                data={subjects}
+                getRowKey={(subject) => subject.id}
+                isLoading={isSubjectLoading || isSubjectFetching}
+                emptyMessage="No subjects found for this user."
+                skeletonRows={5}
+              />
+              <div className="flex flex-col justify-center items-center mt-2">
                 <PaginationControls
-                  handlePageChange={handleSubjectPageChange}
-                  pagination={subjectPagination}
+                  firstPage={sFirstPage}
+                  previousPage={sPreviousPage}
+                  nextPage={sNextPage}
+                  lastPage={sLastPage}
+                  pageItems={sPageItems}
+                  page={subjectPagination.page}
+                  totalPages={subjectPagination.totalPages}
+                  goToPage={sGoToPage}
                 />
               </div>
-            </div>
-          </div>
-        </motion.div>
-      </div>
+            </>
+          ),
+        }}
+        isFetching={isDeptFetching || isSubjectFetching || isPending}
+      />
     </section>
   );
 }

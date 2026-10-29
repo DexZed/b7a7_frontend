@@ -2,12 +2,10 @@
 
 import PageHeading from "@/components/pageHeading";
 import { PaginationControls } from "@/components/pagination";
-
 import SearchField from "@/components/searchField";
 import { GenericTable } from "@/components/table";
 import { usePagination } from "@/hooks/use-pagination";
 import { useUnenrolledClasses } from "@/hooks/use-student-hooks";
-import { useClasses } from "@/hooks/use-teacher-hooks";
 import { useSession } from "@/lib/authClient";
 import { Class } from "@/lib/types";
 import { Info } from "lucide-react";
