@@ -6,7 +6,7 @@ import { Info } from "lucide-react";
 import { Subject } from "@/lib/types";
 import PageHeading from "@/components/pageHeading";
 import SearchField from "@/components/searchField";
-import { useSubjects } from "@/hooks/uses-teacher-hooks";
+import { useSubjects } from "@/hooks/use-teacher-hooks";
 import { motion } from "motion/react";
 import { GenericTable } from "@/components/table";
 import PaginationControls from "@/components/pagination";
